@@ -1,0 +1,18 @@
+# Velocity multiplier for horizontal movements
+# Left/right (x) and forward/backward (z)
+horizontal-velocity-multiplier:
+  x: 1.0
+  y: -0.3
+  z: 1.0
+
+# Velocity multiplier for vertical movement (y)
+vertical-velocity-multiplier:
+  x: 1.0
+  y: 1.3
+  z: 1.0
+
+# Maximum number of consecutive jumps allowed
+max-consecutive-jumps: 2
+
+# Cooldown period after using the double jump ability
+cooldown: 2s
