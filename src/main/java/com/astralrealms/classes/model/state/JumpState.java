@@ -1,4 +1,4 @@
-package com.astralrealms.classes.model;
+package com.astralrealms.classes.model.state;
 
 import lombok.Getter;
 

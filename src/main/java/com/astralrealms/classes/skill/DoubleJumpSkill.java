@@ -13,8 +13,7 @@ public class DoubleJumpSkill implements Skill {
     public void trigger(Player player, Input input) {
         DoubleJumpConfiguration configuration = AstralClasses.getPlugin(AstralClasses.class).doubleJumpConfiguration();
 
-
-        Vector direction = player.getLocation().getDirection();
+        Vector direction = player.getLocation().getDirection().setY(0).normalize();
         boolean isLeft = input.isLeft();
         boolean isRight = input.isRight();
         boolean isForward = input.isForward();
@@ -25,18 +24,19 @@ public class DoubleJumpSkill implements Skill {
 
         if (hasHorizontalInput) {
             Vector velocityMultiplier = configuration.horizontalVelocityMultiplier();
+
+            // Calculate the right vector (perpendicular to direction)
+            Vector rightVector = new Vector(-direction.getZ(), 0, direction.getX()).normalize();
+
             if (isForward)
-                jumpVector.add(direction.clone().setY(0).normalize().multiply(velocityMultiplier.getZ()));
+                jumpVector.add(direction.clone().multiply(velocityMultiplier.getZ()));
             if (isBackward)
-                jumpVector.add(direction.clone().setY(0).normalize().multiply(-velocityMultiplier.getZ()));
-            if (isLeft) {
-                Vector leftVector = direction.clone().setY(0).normalize().crossProduct(new Vector(0, 1, 0)).multiply(-velocityMultiplier.getX());
-                jumpVector.add(leftVector);
-            }
-            if (isRight) {
-                Vector rightVector = direction.clone().setY(0).normalize().crossProduct(new Vector(0, 1, 0)).multiply(velocityMultiplier.getX());
-                jumpVector.add(rightVector);
-            }
+                jumpVector.add(direction.clone().multiply(-velocityMultiplier.getZ()));
+            if (isLeft)
+                jumpVector.add(rightVector.clone().multiply(-velocityMultiplier.getX()));
+            if (isRight)
+                jumpVector.add(rightVector.clone().multiply(velocityMultiplier.getX()));
+
             jumpVector.multiply(velocityMultiplier);
         } else {
             Vector verticalMultiplier = configuration.verticalVelocityMultiplier();

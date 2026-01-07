@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.astralrealms.classes.AstralClasses;
-import com.astralrealms.classes.model.JumpState;
+import com.astralrealms.classes.model.state.JumpState;
 import com.astralrealms.classes.skill.DoubleJumpSkill;
 
 /**
