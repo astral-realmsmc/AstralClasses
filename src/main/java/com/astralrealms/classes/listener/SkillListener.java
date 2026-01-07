@@ -17,8 +17,8 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.state.JumpState;
-import com.astralrealms.classes.skill.BasicShootSkill;
 import com.astralrealms.classes.skill.DoubleJumpSkill;
+import com.astralrealms.classes.skill.GrenadeSkill;
 
 /**
  * Handles double jump skill detection and triggering.
@@ -100,7 +100,7 @@ public class SkillListener implements Listener {
         if (!e.getHand().equals(EquipmentSlot.HAND))
             return;
 
-        BasicShootSkill skill = new BasicShootSkill();
+        GrenadeSkill skill = new GrenadeSkill();
         skill.trigger(e.getPlayer(), new Input() {
             @Override
             public boolean isForward() {
