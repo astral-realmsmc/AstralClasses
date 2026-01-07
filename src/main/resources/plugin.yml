@@ -1,0 +1,7 @@
+name: AstralClasses
+version: ${project.version}
+main: com.astralrealms.classes.AstralClasses
+api-version: '1.21'
+authors: [ Roch Blondiaux ]
+depend:
+  - AstralCore
