@@ -1,11 +1,13 @@
 package com.astralrealms.classes.skill;
 
 import org.bukkit.Input;
+import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.configuration.DoubleJumpConfiguration;
+import com.astralrealms.classes.model.skill.Skill;
 
 public class DoubleJumpSkill implements Skill {
 
@@ -13,6 +15,17 @@ public class DoubleJumpSkill implements Skill {
     public void trigger(Player player, Input input) {
         DoubleJumpConfiguration configuration = AstralClasses.getPlugin(AstralClasses.class).doubleJumpConfiguration();
 
+        // Spawn particle effect at player's feet location
+        Particle.CLOUD.builder()
+                .count(10)
+                .offset(0, 0, 0)
+                .location(player.getLocation().add(0, 0.1, 0))
+                .spawn();
+
+        // Reset fall distance to prevent fall damage
+        player.setFallDistance(0);
+
+        // Apply velocity
         Vector direction = player.getLocation().getDirection().setY(0).normalize();
         boolean isLeft = input.isLeft();
         boolean isRight = input.isRight();

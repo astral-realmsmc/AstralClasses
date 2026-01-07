@@ -1,4 +1,4 @@
-package com.astralrealms.classes.skill;
+package com.astralrealms.classes.model.skill;
 
 import org.bukkit.Input;
 import org.bukkit.entity.Player;

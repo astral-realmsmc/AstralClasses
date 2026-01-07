@@ -10,11 +10,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInputEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.state.JumpState;
+import com.astralrealms.classes.skill.BasicShootSkill;
 import com.astralrealms.classes.skill.DoubleJumpSkill;
 
 /**
@@ -90,6 +93,50 @@ public class SkillListener implements Listener {
         // Trigger double jump
         state.recordDoubleJump(currentTime);
         doubleJumpSkill.trigger(player, input);
+    }
+
+    @EventHandler
+    public void onInteract(PlayerInteractEvent e) {
+        if (!e.getHand().equals(EquipmentSlot.HAND))
+            return;
+
+        BasicShootSkill skill = new BasicShootSkill();
+        skill.trigger(e.getPlayer(), new Input() {
+            @Override
+            public boolean isForward() {
+                return false;
+            }
+
+            @Override
+            public boolean isBackward() {
+                return false;
+            }
+
+            @Override
+            public boolean isLeft() {
+                return false;
+            }
+
+            @Override
+            public boolean isRight() {
+                return false;
+            }
+
+            @Override
+            public boolean isJump() {
+                return false;
+            }
+
+            @Override
+            public boolean isSneak() {
+                return false;
+            }
+
+            @Override
+            public boolean isSprint() {
+                return false;
+            }
+        });
     }
 
     /**
