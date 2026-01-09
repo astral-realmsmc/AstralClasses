@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.bukkit.util.Vector;
@@ -61,5 +62,9 @@ public class SkillService {
             this.plugin.getSLF4JLogger().error("Failed to load skills", e);
         }
         this.plugin.getSLF4JLogger().info("Loaded {} skills", this.skills.size());
+    }
+
+    public Optional<Skill> findById(String id) {
+        return Optional.ofNullable(this.skills.get(id));
     }
 }

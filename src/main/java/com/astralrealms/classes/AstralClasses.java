@@ -3,6 +3,7 @@ package com.astralrealms.classes;
 import com.astralrealms.classes.command.ClassCommand;
 import com.astralrealms.classes.listener.InputListener;
 import com.astralrealms.classes.listener.SkillListener;
+import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
 
@@ -15,6 +16,7 @@ public final class AstralClasses extends AstralPaperPlugin {
 
     // Services
     private SkillService skills;
+    private ClassService classes;
 
     @Override
     public void onEnable() {
@@ -22,6 +24,7 @@ public final class AstralClasses extends AstralPaperPlugin {
 
         // Services
         this.skills = new SkillService(this);
+        this.classes = new ClassService(this);
 
         // Configuration
         this.loadConfiguration();
@@ -45,5 +48,6 @@ public final class AstralClasses extends AstralPaperPlugin {
     public void loadConfiguration() {
         // Services
         this.skills.load();
+        this.classes.load();
     }
 }
