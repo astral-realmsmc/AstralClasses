@@ -3,7 +3,9 @@ package com.astralrealms.classes.skill;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -15,15 +17,16 @@ import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.destroystokyo.paper.ParticleBuilder;
 
-public class GrenadeSkill implements Skill {
+public record GrenadeSkill(ItemStack item, double velocity, double impactRange, double damage,
+                           double knockbackVelocity) implements Skill {
 
     @Override
     public void trigger(Player player, SkillContext context) {
         Item grenade = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection()), Item.class);
-        grenade.setItemStack(new ItemStack(Material.MAGMA_BLOCK));
+        grenade.setItemStack(item);
 
         // Launch the grenade forward with some upward velocity
-        grenade.setVelocity(player.getEyeLocation().getDirection().multiply(0.8));
+        grenade.setVelocity(player.getEyeLocation().getDirection().multiply(velocity));
 
         // When the grenade lands, create an explosion effect and remove the grenade
         AtomicReference<Location> lastLocation = new AtomicReference<>(grenade.getLocation());
@@ -52,12 +55,12 @@ public class GrenadeSkill implements Skill {
             grenade.remove();
 
             // Apply knockback and damage to nearby players
-            List<Entity> nearbyEntities = grenade.getWorld().getNearbyEntities(grenade.getLocation(), 3.0, 3.0, 3.0).stream()
+            List<Entity> nearbyEntities = grenade.getWorld().getNearbyEntities(grenade.getLocation(), impactRange, impactRange, impactRange).stream()
                     .toList();
             for (Entity entity : nearbyEntities) {
-                entity.setVelocity(entity.getLocation().toVector().subtract(grenade.getLocation().toVector()).normalize().multiply(1.5).setY(0.5));
+                entity.setVelocity(entity.getLocation().toVector().subtract(grenade.getLocation().toVector()).normalize().multiply(this.knockbackVelocity).setY(0.5));
                 if (entity instanceof LivingEntity livingEntity)
-                    livingEntity.damage(6.0, player);
+                    livingEntity.damage(damage, player);
             }
 
             task.cancel();

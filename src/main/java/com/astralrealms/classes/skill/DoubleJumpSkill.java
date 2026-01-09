@@ -1,20 +1,45 @@
 package com.astralrealms.classes.skill;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.bukkit.Input;
 import org.bukkit.Particle;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
 
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.InputSkillContext;
 import com.astralrealms.classes.model.skill.context.SkillContext;
+import com.astralrealms.classes.model.state.JumpState;
 
-public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizontalVelocityMultiplier) implements Skill {
+public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
+                              Vector horizontalVelocityMultiplier) implements Skill, Listener {
+
+    private static final Map<UUID, JumpState> jumpStates = new ConcurrentHashMap<>();
 
     @Override
     public void trigger(Player player, SkillContext context) {
         if (!(context instanceof InputSkillContext(Input input)))
             throw new IllegalArgumentException("Expected InputSkillContext for DoubleJumpSkill");
+        if (!input.isJump())
+            return;
+
+        // Get or create jump state for this player
+        JumpState state = jumpStates.computeIfAbsent(player.getUniqueId(), _ -> new JumpState());
+
+        // Player on ground = first jump
+        if (isOnGround(player)) {
+            state.reset();
+            state.recordJump();
+            return;
+        }
 
         // Spawn particle effect at player's feet location
         Particle.CLOUD.builder()
@@ -60,4 +85,31 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizont
         player.setVelocity(jumpVector);
     }
 
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        // Early exit: only process when moving between blocks
+        if (!event.hasChangedBlock())
+            return;
+
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        // Reset jump state when player touches ground
+        if (!isOnGround(player))
+            return;
+
+        JumpState state = jumpStates.get(uuid);
+        if (state != null && state.jumpCount() > 0)
+            state.reset();
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        jumpStates.remove(event.getPlayer().getUniqueId());
+    }
+
+    private boolean isOnGround(Player player) {
+        Block block = player.getLocation().getBlock().getRelative(0, -1, 0);
+        return block.getType().isSolid();
+    }
 }

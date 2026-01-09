@@ -1,8 +1,7 @@
 package com.astralrealms.classes;
 
 import com.astralrealms.classes.command.ClassCommand;
-import com.astralrealms.classes.listener.InputListener;
-import com.astralrealms.classes.listener.SkillListener;
+import com.astralrealms.classes.listener.SkillTriggerListener;
 import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
@@ -34,8 +33,7 @@ public final class AstralClasses extends AstralPaperPlugin {
 
         // Listeners
         this.registerListeners(
-                new SkillListener(this),
-                new InputListener(this)
+                new SkillTriggerListener(this)
         );
     }
 

@@ -5,4 +5,8 @@ import java.util.Map;
 import com.astralrealms.classes.model.InputType;
 
 public record SkillSet(Map<InputType, Skill> skills) {
+
+    public Skill getSkillByInput(InputType inputType) {
+        return skills.get(inputType);
+    }
 }
