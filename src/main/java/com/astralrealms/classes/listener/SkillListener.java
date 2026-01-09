@@ -17,7 +17,6 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.state.JumpState;
-import com.astralrealms.classes.skill.DoubleJumpSkill;
 import com.astralrealms.classes.skill.GrenadeSkill;
 
 /**
@@ -27,12 +26,10 @@ import com.astralrealms.classes.skill.GrenadeSkill;
 public class SkillListener implements Listener {
 
     private final AstralClasses plugin;
-    private final DoubleJumpSkill doubleJumpSkill;
     private final Map<UUID, JumpState> jumpStates = new ConcurrentHashMap<>();
 
     public SkillListener(AstralClasses plugin) {
         this.plugin = plugin;
-        this.doubleJumpSkill = new DoubleJumpSkill();
     }
 
     /**
@@ -82,17 +79,17 @@ public class SkillListener implements Listener {
         }
 
         // Player airborne = potential double jump
-        long currentTime = System.currentTimeMillis();
-        long cooldownMs = plugin.doubleJumpConfiguration().cooldown().toMillis();
-        int maxJumps = plugin.doubleJumpConfiguration().maxConsecutiveJumps();
-
-        if (!state.canDoubleJump(currentTime, cooldownMs, maxJumps)) {
-            return;
-        }
-
-        // Trigger double jump
-        state.recordDoubleJump(currentTime);
-        doubleJumpSkill.trigger(player, input);
+//        long currentTime = System.currentTimeMillis();
+//        long cooldownMs = plugin.doubleJumpConfiguration().cooldown().toMillis();
+//        int maxJumps = plugin.doubleJumpConfiguration().maxConsecutiveJumps();
+//
+//        if (!state.canDoubleJump(currentTime, cooldownMs, maxJumps)) {
+//            return;
+//        }
+//
+//        // Trigger double jump
+//        state.recordDoubleJump(currentTime);
+//        doubleJumpSkill.trigger(player, input);
     }
 
     @EventHandler
@@ -101,42 +98,6 @@ public class SkillListener implements Listener {
             return;
 
         GrenadeSkill skill = new GrenadeSkill();
-        skill.trigger(e.getPlayer(), new Input() {
-            @Override
-            public boolean isForward() {
-                return false;
-            }
-
-            @Override
-            public boolean isBackward() {
-                return false;
-            }
-
-            @Override
-            public boolean isLeft() {
-                return false;
-            }
-
-            @Override
-            public boolean isRight() {
-                return false;
-            }
-
-            @Override
-            public boolean isJump() {
-                return false;
-            }
-
-            @Override
-            public boolean isSneak() {
-                return false;
-            }
-
-            @Override
-            public boolean isSprint() {
-                return false;
-            }
-        });
     }
 
     /**

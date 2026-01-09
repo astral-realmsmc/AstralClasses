@@ -5,15 +5,16 @@ import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import com.astralrealms.classes.AstralClasses;
-import com.astralrealms.classes.configuration.DoubleJumpConfiguration;
 import com.astralrealms.classes.model.skill.Skill;
+import com.astralrealms.classes.model.skill.context.InputSkillContext;
+import com.astralrealms.classes.model.skill.context.SkillContext;
 
-public class DoubleJumpSkill implements Skill {
+public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizontalVelocityMultiplier) implements Skill {
 
     @Override
-    public void trigger(Player player, Input input) {
-        DoubleJumpConfiguration configuration = AstralClasses.getPlugin(AstralClasses.class).doubleJumpConfiguration();
+    public void trigger(Player player, SkillContext context) {
+        if (!(context instanceof InputSkillContext(Input input)))
+            throw new IllegalArgumentException("Expected InputSkillContext for DoubleJumpSkill");
 
         // Spawn particle effect at player's feet location
         Particle.CLOUD.builder()
@@ -37,7 +38,7 @@ public class DoubleJumpSkill implements Skill {
         boolean hasHorizontalInput = isLeft || isRight || isForward || isBackward;
 
         if (hasHorizontalInput) {
-            Vector velocityMultiplier = configuration.horizontalVelocityMultiplier();
+            Vector velocityMultiplier = this.horizontalVelocityMultiplier;
 
             // Calculate the right vector (perpendicular to direction)
             Vector rightVector = new Vector(-direction.getZ(), 0, direction.getX()).normalize();
@@ -53,8 +54,7 @@ public class DoubleJumpSkill implements Skill {
 
             jumpVector.multiply(velocityMultiplier);
         } else {
-            Vector verticalMultiplier = configuration.verticalVelocityMultiplier();
-            jumpVector.multiply(verticalMultiplier);
+            jumpVector.multiply(this.verticalVelocityMultiplier);
         }
 
         player.setVelocity(jumpVector);

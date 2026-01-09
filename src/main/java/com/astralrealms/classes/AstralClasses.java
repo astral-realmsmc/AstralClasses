@@ -1,15 +1,9 @@
 package com.astralrealms.classes;
 
-import java.nio.file.Path;
-
-import org.bukkit.util.Vector;
-import org.spongepowered.configurate.serialize.TypeSerializerCollection;
-
 import com.astralrealms.classes.command.ClassCommand;
-import com.astralrealms.classes.configuration.DoubleJumpConfiguration;
-import com.astralrealms.classes.configuration.serializer.VectorTypeSerializer;
+import com.astralrealms.classes.listener.InputListener;
 import com.astralrealms.classes.listener.SkillListener;
-import com.astralrealms.core.paper.configuration.serializer.PaperTypeSerializers;
+import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
 
 import lombok.Getter;
@@ -18,11 +12,16 @@ import lombok.Getter;
 public final class AstralClasses extends AstralPaperPlugin {
 
     // Configuration
-    private DoubleJumpConfiguration doubleJumpConfiguration;
+
+    // Services
+    private SkillService skills;
 
     @Override
     public void onEnable() {
         super.onEnable();
+
+        // Services
+        this.skills = new SkillService(this);
 
         // Configuration
         this.loadConfiguration();
@@ -31,7 +30,10 @@ public final class AstralClasses extends AstralPaperPlugin {
         this.registerCommand(new ClassCommand());
 
         // Listeners
-        this.registerListener(new SkillListener(this));
+        this.registerListeners(
+                new SkillListener(this),
+                new InputListener(this)
+        );
     }
 
     @Override
@@ -41,14 +43,7 @@ public final class AstralClasses extends AstralPaperPlugin {
 
     @Override
     public void loadConfiguration() {
-        Path skillsPath = this.getDataPath().resolve("skills");
-
-        TypeSerializerCollection serializers = TypeSerializerCollection.builder()
-                .register(Vector.class, new VectorTypeSerializer())
-                .registerAll(PaperTypeSerializers.all())
-                .build();
-
-        // Load Double Jump Configuration
-        this.doubleJumpConfiguration = this.configurationManager().load(skillsPath.resolve("double-jump.yml"), "skills/double-jump.yml", DoubleJumpConfiguration.class, c -> c.serializers(serializers));
+        // Services
+        this.skills.load();
     }
 }

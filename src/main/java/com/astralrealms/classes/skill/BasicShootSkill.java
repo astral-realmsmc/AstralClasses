@@ -1,7 +1,6 @@
 package com.astralrealms.classes.skill;
 
 import org.bukkit.Color;
-import org.bukkit.Input;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
@@ -9,6 +8,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import com.astralrealms.classes.model.skill.Skill;
+import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.destroystokyo.paper.ParticleBuilder;
 
 public class BasicShootSkill implements Skill {
@@ -16,7 +16,7 @@ public class BasicShootSkill implements Skill {
     // TODO: Make this configurable
 
     @Override
-    public void trigger(Player player, Input input) {
+    public void trigger(Player player, SkillContext context) {
         Location eyeLocation = player.getLocation().add(0, player.getEyeHeight(), 0);
         eyeLocation.add(player.getLocation().getDirection().multiply(1.0));
 

@@ -1,0 +1,6 @@
+id: "mage"
+name: "<purple>Mage"
+skills:
+  space: double-jump
+  left-click: basic-projectile
+  sneak: fireball

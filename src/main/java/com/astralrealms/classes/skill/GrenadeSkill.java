@@ -12,12 +12,13 @@ import org.bukkit.inventory.ItemStack;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.skill.Skill;
+import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.destroystokyo.paper.ParticleBuilder;
 
 public class GrenadeSkill implements Skill {
 
     @Override
-    public void trigger(Player player, Input input) {
+    public void trigger(Player player, SkillContext context) {
         Item grenade = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection()), Item.class);
         grenade.setItemStack(new ItemStack(Material.MAGMA_BLOCK));
 
