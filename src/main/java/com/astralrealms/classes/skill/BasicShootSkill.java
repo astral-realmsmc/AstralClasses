@@ -1,18 +1,19 @@
 package com.astralrealms.classes.skill;
 
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.destroystokyo.paper.ParticleBuilder;
 
-public record BasicShootSkill(int range, int damage, double knockbackVelocity) implements Skill {
+@ConfigSerializable
+public record BasicShootSkill(int range, int damage, double knockbackVelocity, double helixRadius) implements Skill {
 
     @Override
     public void trigger(Player player, SkillContext context) {
@@ -20,10 +21,14 @@ public record BasicShootSkill(int range, int damage, double knockbackVelocity) i
         eyeLocation.add(player.getLocation().getDirection().multiply(1.0));
 
         // Spawn a line of particles from eye location to target location
-        ParticleBuilder whiteParticle = Particle.DUST.builder()
-                .color(Color.WHITE);
-        ParticleBuilder purpleParticle = Particle.DUST.builder()
-                .color(Color.PURPLE);
+        ParticleBuilder whiteParticle = Particle.SMOKE.builder()
+                .offset(0, 0, 0)
+                .count(1)
+                .extra(0f);
+        ParticleBuilder purpleParticle = Particle.FLAME.builder()
+                .offset(0, 0, 0)
+                .count(1)
+                .extra(0f);
 
         Vector direction = eyeLocation.getDirection();
         Vector perpendicular = direction.clone().crossProduct(new Vector(0, 1, 0)).normalize();
@@ -32,8 +37,6 @@ public record BasicShootSkill(int range, int damage, double knockbackVelocity) i
         if (perpendicular.lengthSquared() < 0.01) {
             perpendicular = direction.clone().crossProduct(new Vector(1, 0, 0)).normalize();
         }
-
-        double helixRadius = 0.3; // Adjust this to change how far apart the spirals are
 
         for (double t = 0; t < range; t += 0.3) {
             Location baseLocation = eyeLocation.clone().add(direction.clone().multiply(t));

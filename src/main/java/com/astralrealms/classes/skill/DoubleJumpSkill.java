@@ -1,5 +1,6 @@
 package com.astralrealms.classes.skill;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,14 +14,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.InputSkillContext;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.state.JumpState;
 
+@ConfigSerializable
 public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
-                              Vector horizontalVelocityMultiplier) implements Skill, Listener {
+                              Vector horizontalVelocityMultiplier, Duration cooldown, int maxConsecutiveJumps) implements Skill, Listener {
 
     private static final Map<UUID, JumpState> jumpStates = new ConcurrentHashMap<>();
 
@@ -38,6 +41,8 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
         if (isOnGround(player)) {
             state.reset();
             state.recordJump();
+            return;
+        } else if (!state.canDoubleJump(System.currentTimeMillis(), 500, 1)) { // long currentTime, long cooldownMs, int maxJumps
             return;
         }
 
@@ -83,6 +88,8 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
         }
 
         player.setVelocity(jumpVector);
+
+        state.recordDoubleJump(System.currentTimeMillis());
     }
 
     @EventHandler

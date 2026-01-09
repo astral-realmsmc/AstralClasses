@@ -11,12 +11,14 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.destroystokyo.paper.ParticleBuilder;
 
+@ConfigSerializable
 public record GrenadeSkill(ItemStack item, double velocity, double impactRange, double damage,
                            double knockbackVelocity) implements Skill {
 

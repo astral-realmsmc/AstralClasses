@@ -67,6 +67,10 @@ public class SkillService {
                         }
 
                         Skill skill = this.plugin.configurationManager().load(path, skillClass, c -> c.serializers(serializers));
+                        if (skill == null) {
+                            this.plugin.getSLF4JLogger().warn("Failed to load skill from file: {}", path);
+                            return;
+                        }
                         this.skills.put(strippedName, skill);
 
                         // Register listener if it's one
