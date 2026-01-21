@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Input;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -48,7 +49,7 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
 
         // Spawn particle effect at player's feet location
         Particle.CLOUD.builder()
-                .count(20)
+                .count(10)
                 .offset(0.5, 0.2, 0.5)
                 .extra(0)
                 .location(player.getLocation().add(0, 0.1, 0))
@@ -90,6 +91,9 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
         player.setVelocity(jumpVector);
 
         state.recordDoubleJump(System.currentTimeMillis());
+
+        // Play sound
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BREEZE_JUMP, 0.7f, 1.0f);
     }
 
     @EventHandler

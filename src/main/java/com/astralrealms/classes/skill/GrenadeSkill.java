@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -32,8 +34,10 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
         // When the grenade lands, create an explosion effect and remove the grenade
         AtomicReference<Location> lastLocation = new AtomicReference<>(grenade.getLocation());
+        long launchTime = System.currentTimeMillis();
         Bukkit.getScheduler().runTaskTimer(AstralClasses.getPlugin(AstralClasses.class), (task) -> {
-            if (!grenade.isOnGround()) {
+            if (!grenade.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid() &&
+                System.currentTimeMillis() - launchTime < 3000) {
                 ParticleBuilder smokeParticle = Particle.SMOKE.builder()
                         .location(grenade.getLocation())
                         .count(5)
@@ -61,9 +65,12 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
                     .toList();
             for (Entity entity : nearbyEntities) {
                 entity.setVelocity(entity.getLocation().toVector().subtract(grenade.getLocation().toVector()).normalize().multiply(this.knockbackVelocity).setY(0.5));
-                if (entity instanceof LivingEntity livingEntity)
+                if (entity instanceof LivingEntity livingEntity && !(entity instanceof Player))  // Prevent friendly fire
                     livingEntity.damage(damage, player);
             }
+
+            // Play sound
+            grenade.getWorld().playSound(lastLocation.get(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
 
             task.cancel();
         }, 0L, 1L);

@@ -46,6 +46,11 @@
             <id>astralrealms</id>
             <url>https://maven.astralrealms.fr/repository/maven-public/</url>
         </repository>
+        <!-- redempt -->
+        <repository>
+            <id>redempt.dev</id>
+            <url>https://redempt.dev</url>
+        </repository>
     </repositories>
 
     <!-- dependencies -->
@@ -96,6 +101,12 @@
             <artifactId>configurate-yaml</artifactId>
             <version>4.2.0</version>
             <scope>provided</scope>
+        </dependency>
+        <!-- crunch -->
+        <dependency>
+            <groupId>com.github.Redempt</groupId>
+            <artifactId>Crunch</artifactId>
+            <version>2.0.3</version>
         </dependency>
     </dependencies>
 
