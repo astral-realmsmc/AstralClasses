@@ -1,12 +1,15 @@
 package com.astralrealms.classes;
 
 import com.astralrealms.classes.command.ClassCommand;
+import com.astralrealms.classes.configuration.MainConfiguration;
 import com.astralrealms.classes.configuration.StatsConfiguration;
 import com.astralrealms.classes.listener.MobListener;
 import com.astralrealms.classes.listener.SkillTriggerListener;
 import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
+import com.astralrealms.classes.storage.ClassSnapshotAdapter;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
+import com.astralrealms.sync.paper.AstralSyncAPI;
 
 import lombok.Getter;
 
@@ -14,6 +17,7 @@ import lombok.Getter;
 public final class AstralClasses extends AstralPaperPlugin {
 
     // Configuration
+    private MainConfiguration configuration;
     private StatsConfiguration statsConfiguration;
 
     // Services
@@ -39,6 +43,9 @@ public final class AstralClasses extends AstralPaperPlugin {
                 new SkillTriggerListener(this),
                 new MobListener(this)
         );
+
+        // Sync
+        AstralSyncAPI.registerAdapter(new ClassSnapshotAdapter(this));
     }
 
     @Override
@@ -49,6 +56,7 @@ public final class AstralClasses extends AstralPaperPlugin {
     @Override
     public void loadConfiguration() {
         // Configuration
+        this.configuration = this.loadConfiguration("config.yml", MainConfiguration.class);
         this.statsConfiguration = this.loadConfiguration("stats.yml", StatsConfiguration.class);
 
         // Services

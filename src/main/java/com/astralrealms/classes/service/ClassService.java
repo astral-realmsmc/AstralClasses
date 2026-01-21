@@ -12,7 +12,9 @@ import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.configuration.serializer.SkillSetTypeSerializer;
 import com.astralrealms.classes.model.AstralClass;
 import com.astralrealms.classes.model.skill.SkillSet;
+import com.astralrealms.classes.storage.ClassPlayerData;
 import com.astralrealms.core.paper.configuration.serializer.PaperTypeSerializers;
+import com.astralrealms.sync.paper.AstralSyncAPI;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,7 +42,8 @@ public class ClassService {
     }
 
     public AstralClass findByPlayer(Player player) {
-        // TODO: Later on use sync, but atm we only have one class
-        return classes.get("mage");
+        return AstralSyncAPI.findData(player.getUniqueId(), ClassPlayerData.class)
+                .map(data -> this.classes.get(data.selectedClassId()))
+                .orElse(classes.get(this.plugin.configuration().defaultClass()));
     }
 }
