@@ -1,5 +1,2 @@
-stats:
-  mtc:
-    id: mtc
-    name: "Mob Trap Chest"
-    damage-expression: "%abilityDamage% * (%bonus% + %abilityBonus%) * (%classCritDamage% / %classCritChance%)"
+damage-expressions:
+  left-click: "%abilityDamage% * (%bonus% + %abilityBonus%) * (%classCritDamage% / %classCritChance%)"

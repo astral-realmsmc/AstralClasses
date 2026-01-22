@@ -62,7 +62,7 @@ public class SkillService {
                         Class<? extends Skill> skillClass = this.skillsTypes.findByName(strippedName)
                                 .orElse(null);
                         if (skillClass == null) {
-                            this.plugin.getSLF4JLogger().warn("Unknown skill type for file: {}", path);
+                            this.plugin.getSLF4JLogger().warn("Unknown skill operation for file: {}", path);
                             return;
                         }
 

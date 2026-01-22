@@ -7,6 +7,8 @@ import com.astralrealms.classes.listener.MobListener;
 import com.astralrealms.classes.listener.SkillTriggerListener;
 import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
+import com.astralrealms.classes.service.StatService;
+import com.astralrealms.classes.service.StatsListener;
 import com.astralrealms.classes.storage.ClassSnapshotAdapter;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
 import com.astralrealms.sync.paper.AstralSyncAPI;
@@ -23,6 +25,7 @@ public final class AstralClasses extends AstralPaperPlugin {
     // Services
     private SkillService skills;
     private ClassService classes;
+    private StatService stats;
 
     @Override
     public void onEnable() {
@@ -31,6 +34,7 @@ public final class AstralClasses extends AstralPaperPlugin {
         // Services
         this.skills = new SkillService(this);
         this.classes = new ClassService(this);
+        this.stats = new StatService(this);
 
         // Configuration
         this.loadConfiguration();
@@ -41,7 +45,8 @@ public final class AstralClasses extends AstralPaperPlugin {
         // Listeners
         this.registerListeners(
                 new SkillTriggerListener(this),
-                new MobListener(this)
+                new MobListener(this),
+                new StatsListener(this)
         );
 
         // Sync

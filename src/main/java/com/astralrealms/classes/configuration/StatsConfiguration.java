@@ -4,8 +4,8 @@ import java.util.Map;
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-import com.astralrealms.classes.model.stat.StatType;
+import com.astralrealms.classes.model.InputType;
 
 @ConfigSerializable
-public record StatsConfiguration(Map<String, StatType> stats) {
+public record StatsConfiguration(Map<InputType, String> damageExpressions) {
 }

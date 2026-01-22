@@ -28,10 +28,10 @@ public class SkillSetTypeSerializer implements TypeSerializer<SkillSet> {
             InputType inputType = InputType.valueOf(entry.getKey().toString().toUpperCase().replace("-", "_"));
             String skillId = entry.getValue().getString();
             if (skillId == null)
-                throw new IllegalStateException("Skill ID cannot be null for input type: " + inputType);
+                throw new IllegalStateException("Skill ID cannot be null for input operation: " + inputType);
             Skill skill = this.plugin.skills()
                     .findById(skillId)
-                    .orElseThrow(() -> new IllegalStateException("Skill with ID '" + skillId + "' not found for input type: " + inputType));
+                    .orElseThrow(() -> new IllegalStateException("Skill with ID '" + skillId + "' not found for input operation: " + inputType));
             skills.put(inputType, skill);
         }
         return new SkillSet(skills);

@@ -23,8 +23,8 @@ import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.state.JumpState;
 
 @ConfigSerializable
-public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
-                              Vector horizontalVelocityMultiplier, Duration cooldown, int maxConsecutiveJumps) implements Skill, Listener {
+public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizontalVelocityMultiplier,
+                              Duration cooldown) implements Skill, Listener {
 
     private static final Map<UUID, JumpState> jumpStates = new ConcurrentHashMap<>();
 
@@ -43,7 +43,7 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
             state.reset();
             state.recordJump();
             return;
-        } else if (!state.canDoubleJump(System.currentTimeMillis(), 500, 1)) { // long currentTime, long cooldownMs, int maxJumps
+        } else if (!state.canDoubleJump(System.currentTimeMillis(), this.cooldown.toMillis(), 1)) {
             return;
         }
 
@@ -54,9 +54,6 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier,
                 .extra(0)
                 .location(player.getLocation().add(0, 0.1, 0))
                 .spawn();
-
-        // Reset fall distance to prevent fall damage
-        player.setFallDistance(0);
 
         // Apply velocity
         Vector direction = player.getLocation().getDirection().setY(0).normalize();

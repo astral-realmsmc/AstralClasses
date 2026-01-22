@@ -1,6 +1,16 @@
 id: "mage"
 name: "<purple>Mage"
+
+# Skills
 skills:
   space: double-jump
   left-click: basic-projectile
   sneak: fireball
+
+# Stats
+stats:
+  # Base damage
+  damage: 5
+  # Critical chance
+  critical-chance: 10
+  critical-damage: 150
