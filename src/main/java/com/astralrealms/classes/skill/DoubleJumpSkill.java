@@ -18,14 +18,14 @@ import org.bukkit.util.Vector;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import com.astralrealms.classes.model.InputType;
-import com.astralrealms.classes.model.skill.Skill;
+import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.InputSkillContext;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.state.JumpState;
 
 @ConfigSerializable
 public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizontalVelocityMultiplier,
-                              Duration cooldown) implements Skill, Listener {
+                              Duration cooldown) implements CooldownSkill, Listener {
 
     private static final Map<UUID, JumpState> jumpStates = new ConcurrentHashMap<>();
 

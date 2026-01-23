@@ -1,5 +1,6 @@
 package com.astralrealms.classes.skill;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,12 +18,13 @@ import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.ClassAPI;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.skill.AttackSkill;
+import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.stat.StatType;
 import com.destroystokyo.paper.ParticleBuilder;
 
 @ConfigSerializable
-public record BasicShootSkill(int range, double damage, double knockbackVelocity, double helixRadius, double hitOffset) implements AttackSkill {
+public record BasicShootSkill(int range, double damage, double knockbackVelocity, double helixRadius, double hitOffset, Duration cooldown) implements AttackSkill, CooldownSkill {
 
 
     @Override

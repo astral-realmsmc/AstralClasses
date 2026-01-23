@@ -1,5 +1,6 @@
 package com.astralrealms.classes.skill;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -19,13 +20,14 @@ import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.ClassAPI;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.skill.AttackSkill;
+import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.stat.StatType;
 import com.destroystokyo.paper.ParticleBuilder;
 
 @ConfigSerializable
 public record GrenadeSkill(ItemStack item, double velocity, double impactRange, double damage,
-                           double knockbackVelocity) implements AttackSkill {
+                           double knockbackVelocity, Duration cooldown) implements AttackSkill, CooldownSkill {
 
     @Override
     public void trigger(Player player, InputType inputType, SkillContext context) {

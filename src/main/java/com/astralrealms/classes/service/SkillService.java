@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -19,6 +20,7 @@ import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.configuration.serializer.VectorTypeSerializer;
 import com.astralrealms.classes.model.AstralClass;
 import com.astralrealms.classes.model.InputType;
+import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.skill.BasicShootSkill;
@@ -32,6 +34,7 @@ public class SkillService {
     private final AstralClasses plugin;
     private final NamedRegistry<Class<? extends Skill>> skillsTypes = new NamedRegistry<>();
     private final Map<String, Skill> skills = new HashMap<>();
+    private final Map<UUID, Map<Class<? extends Skill>, Long>> lastUsedTimestamps = new HashMap<>();
 
     public SkillService(AstralClasses plugin) {
         this.plugin = plugin;
@@ -91,7 +94,21 @@ public class SkillService {
 
     public void tryTriggerSkill(Player player, AstralClass astralClass, InputType type, Supplier<@Nullable SkillContext> contextSupplier) {
         astralClass.findSkillByInput(type)
-                .ifPresent(skill -> skill.trigger(player, type, contextSupplier.get()));
+                .ifPresent(skill -> {
+                    // Handle cooldowns
+                    if (skill instanceof CooldownSkill cooldownSkill) {
+                        long currentTime = System.currentTimeMillis();
+                        Map<Class<? extends Skill>, Long> playerTimestamps = this.lastUsedTimestamps.computeIfAbsent(player.getUniqueId(), _ -> new HashMap<>());
+                        long lastUsed = playerTimestamps.getOrDefault(skill.getClass(), 0L);
+                        long cooldownMillis = cooldownSkill.cooldown().toMillis();
+                        if (currentTime - lastUsed < cooldownMillis)
+                            return;
+
+                        playerTimestamps.put(skill.getClass(), currentTime);
+                    }
+
+                    skill.trigger(player, type, contextSupplier.get());
+                });
     }
 
     public Optional<Skill> findById(String id) {
