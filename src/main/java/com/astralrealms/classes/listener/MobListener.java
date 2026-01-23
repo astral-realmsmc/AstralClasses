@@ -4,15 +4,13 @@ import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
-import org.bukkit.entity.TextDisplay;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import com.astralrealms.classes.AstralClasses;
@@ -25,12 +23,6 @@ public class MobListener implements Listener {
 
     private final AstralClasses plugin;
     private final Map<TextDisplay, Long> displayTimestamps;
-
-    // Configuration for distance-based scaling
-    private static final double MIN_DISTANCE = 3.0;  // Distance where scale is smallest
-    private static final double MAX_DISTANCE = 25.0; // Distance where scale is largest
-    private static final float MIN_SCALE = 0.8f;     // Minimum scale multiplier
-    private static final float MAX_SCALE = 2.5f;     // Maximum scale multiplier
 
     public MobListener(AstralClasses plugin) {
         this.plugin = plugin;
@@ -53,59 +45,56 @@ public class MobListener implements Listener {
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent e) {
         Entity victim = e.getEntity();
-        if (victim instanceof Player) return;
+        if (victim instanceof Player) return; // Keep your logic: only show when hitting non-players
 
         Entity attacker = e.getDamager();
-        if (attacker instanceof Projectile) {
-            attacker = (Entity) ((Projectile) attacker).getShooter();
+        if (attacker instanceof Projectile projectile) {
+            attacker = (Entity) projectile.getShooter();
         }
-        if (attacker == null) attacker = e.getDamager();
+        if (attacker == null) attacker = e.getDamager(); // Fallback for dispensers/etc
 
-        Location spawnLoc = victim.getLocation().add(0, victim.getHeight() + 0.5, 0);
-        Location attackerLoc = attacker.getLocation();
+        // Use EyeLocation for the anchor point so it centers on their view
+        Location eyeLoc = attacker instanceof LivingEntity ? ((LivingEntity) attacker).getEyeLocation() : attacker.getLocation();
 
-        // Calculate distance between attacker and victim
-        double distance = attackerLoc.distance(spawnLoc);
+        // 1. Calculate Forward Vector (Where the attacker is looking)
+        Vector dir = eyeLoc.getDirection().normalize();
 
-        // Calculate scale based on distance (linear interpolation)
-        float scale = calculateScale(distance);
+        // 2. Calculate "Left" Vector based purely on Yaw (Horizontal rotation)
+        // This ensures "Left" is always to the player's left side, even if they are looking up or down.
+        double yawRad = Math.toRadians(eyeLoc.getYaw());
+        // In Minecraft coordinates (East is +X, South is +Z):
+        // x = cos(yaw) gives the left offset, z = sin(yaw) gives the left offset
+        Vector left = new Vector(Math.cos(yawRad), 0, Math.sin(yawRad));
 
-        TextDisplay display = victim.getWorld().spawn(spawnLoc, TextDisplay.class);
+        // 3. Define Offsets
+        double distance = 2.1;   // How far in front of the face (Forward)
+        double sideDist = 0.7;   // How far to the left (Left)
+        double heightDist = 0.2; // How high above the eyes (Top)
+
+        // 4. Calculate the final spawn location
+        Location spawnLoc = eyeLoc.clone()
+                .add(dir.multiply(distance))
+                .add(left.multiply(sideDist))
+                .add(0, heightDist, 0);
+
+        TextDisplay display = eyeLoc.getWorld().spawn(spawnLoc, TextDisplay.class);
 
         display.text(Component.text("-" + (int) e.getFinalDamage(), NamedTextColor.RED, TextDecoration.BOLD));
-        display.setBillboard(TextDisplay.Billboard.FIXED);
+
+        // Use CENTER so the text always faces the player (RPG style) without complex manual rotation math
+        display.setBillboard(TextDisplay.Billboard.CENTER);
         display.setAlignment(TextDisplay.TextAlignment.CENTER);
         display.setShadowed(true);
 
-        // Calculate direction from victim to attacker
-        Vector direction = attackerLoc.toVector().subtract(spawnLoc.toVector()).normalize();
-        float yaw = (float) Math.toDegrees(Math.atan2(-direction.getX(), direction.getZ()));
-
-        display.setRotation(yaw, 0);
+        float scale = 0.75f;
         display.setTransformation(new Transformation(
                 new Vector3f(),
-                new org.joml.AxisAngle4f(),
+                new AxisAngle4f(),
                 new Vector3f(scale, scale, scale),
-                new org.joml.AxisAngle4f()
+                new AxisAngle4f()
         ));
 
+        // Assume displayTimestamps is a field in your class
         displayTimestamps.put(display, System.currentTimeMillis());
-    }
-
-    /**
-     * Calculates the scale factor based on distance.
-     * Farther distances result in larger scales for better visibility.
-     *
-     * @param distance The distance between attacker and victim
-     * @return The calculated scale factor
-     */
-    private float calculateScale(double distance) {
-        // Clamp distance to our defined range
-        distance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, distance));
-
-        // Linear interpolation between MIN_SCALE and MAX_SCALE
-        double ratio = (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
-
-        return (float) (MIN_SCALE + (MAX_SCALE - MIN_SCALE) * ratio);
     }
 }

@@ -1,8 +1,9 @@
 package com.astralrealms.classes.skill;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -10,6 +11,9 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -17,15 +21,43 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.ClassAPI;
 import com.astralrealms.classes.model.InputType;
+import com.astralrealms.classes.model.Tickable;
 import com.astralrealms.classes.model.skill.AttackSkill;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.stat.StatType;
+import com.astralrealms.classes.model.state.BasicShootState;
+import com.astralrealms.core.paper.utils.ComponentUtils;
 import com.destroystokyo.paper.ParticleBuilder;
 
-@ConfigSerializable
-public record BasicShootSkill(int range, double damage, double knockbackVelocity, double helixRadius, double hitOffset, Duration cooldown) implements AttackSkill, CooldownSkill {
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
+@ConfigSerializable
+public record BasicShootSkill(int range, double damage, double knockbackVelocity, double helixRadius, double hitOffset,
+                              Duration cooldown) implements AttackSkill, CooldownSkill, Tickable, Listener {
+
+    private static final Map<UUID, BasicShootState> states = new ConcurrentHashMap<>();
+    private static final Component COMPLETED_BAR = Component.text("■", NamedTextColor.GREEN);
+    private static final Component EMPTY_BAR = Component.text("□", NamedTextColor.GRAY);
+
+    @Override
+    public void tick() {
+        for (Map.Entry<UUID, BasicShootState> entry : states.entrySet()) {
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player == null || !player.isOnline()) {
+                states.remove(entry.getKey());
+                continue;
+            }
+
+            BasicShootState state = entry.getValue();
+            // Tick the state
+            state.tick();
+
+            // Update action bar
+            player.sendActionBar(ComponentUtils.progressBar((double) state.hits() / 6, 6, COMPLETED_BAR, EMPTY_BAR));
+        }
+    }
 
     @Override
     public void trigger(Player player, InputType inputType, SkillContext context) {
@@ -93,6 +125,12 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
 
         // Apply effects to hit entity (or all entities if no specific hit was found)
         Collection<LivingEntity> hitEntities = hitEntity != null ? List.of(hitEntity) : potentialHits;
+
+        // Record hit in state
+        if (!hitEntities.isEmpty())
+            editState(player, BasicShootState::recordHit);
+
+        // Apply effects
         for (LivingEntity target : hitEntities) {
             target.setVelocity(player.getLocation().getDirection().multiply(knockbackVelocity));
             if (target instanceof Player)
@@ -133,5 +171,21 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
                 .add(axis.clone().multiply(dot * (1 - cos)));
     }
 
+    private void editState(Player player, Consumer<BasicShootState> consumer) {
+        states.compute(player.getUniqueId(), (_, state) -> {
+            if (state == null)
+                state = new BasicShootState();
+            consumer.accept(state);
+            return state;
+        });
+    }
 
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        states.remove(e.getPlayer().getUniqueId());
+    }
+
+    public static Optional<BasicShootState> getState(Player player) {
+        return Optional.ofNullable(states.get(player.getUniqueId()));
+    }
 }

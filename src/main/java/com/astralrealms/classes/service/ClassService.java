@@ -9,12 +9,12 @@ import org.bukkit.entity.Player;
 import org.spongepowered.configurate.serialize.TypeSerializerCollection;
 
 import com.astralrealms.classes.AstralClasses;
+import com.astralrealms.classes.configuration.serializer.InputTypeSerializer;
 import com.astralrealms.classes.configuration.serializer.SkillSetTypeSerializer;
 import com.astralrealms.classes.model.AstralClass;
+import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.skill.SkillSet;
-import com.astralrealms.classes.storage.ClassPlayerData;
 import com.astralrealms.core.paper.configuration.serializer.PaperTypeSerializers;
-import com.astralrealms.sync.paper.AstralSyncAPI;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +31,7 @@ public class ClassService {
         Path dataFolder = this.plugin.getDataFolder().toPath().resolve("classes");
         TypeSerializerCollection serializers = TypeSerializerCollection.builder()
                 .register(SkillSet.class, new SkillSetTypeSerializer(this.plugin))
+                .register(InputType.class, InputTypeSerializer.INSTANCE)
                 .registerAll(PaperTypeSerializers.all())
                 .build();
 
@@ -42,8 +43,10 @@ public class ClassService {
     }
 
     public AstralClass findByPlayer(Player player) {
-        return AstralSyncAPI.findData(player.getUniqueId(), ClassPlayerData.class)
-                .map(data -> this.classes.get(data.selectedClassId()))
-                .orElse(classes.get(this.plugin.configuration().defaultClass()));
+        return this.classes.get("mage");
+
+//        return AstralSyncAPI.findData(player.getUniqueId(), ClassPlayerData.class)
+//                .map(data -> this.classes.get(data.selectedClassId()))
+//                .orElse(classes.get(this.plugin.configuration().defaultClass()));
     }
 }

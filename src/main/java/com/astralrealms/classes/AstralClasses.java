@@ -9,9 +9,7 @@ import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.classes.service.StatService;
 import com.astralrealms.classes.service.StatsListener;
-import com.astralrealms.classes.storage.ClassSnapshotAdapter;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
-import com.astralrealms.sync.paper.AstralSyncAPI;
 
 import lombok.Getter;
 
@@ -50,7 +48,10 @@ public final class AstralClasses extends AstralPaperPlugin {
         );
 
         // Sync
-        AstralSyncAPI.registerAdapter(new ClassSnapshotAdapter(this));
+        // AstralSyncAPI.registerAdapter(new ClassSnapshotAdapter(this));
+
+        // API
+        ClassAPI.init(this);
     }
 
     @Override

@@ -5,6 +5,7 @@ name: "<purple>Mage"
 skills:
   space: double-jump
   left-click: basic-projectile
+  right-click: charged-projectile
   sneak: fireball
 
 # Stats
