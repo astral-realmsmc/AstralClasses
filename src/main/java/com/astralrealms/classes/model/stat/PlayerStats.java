@@ -1,60 +1,48 @@
 package com.astralrealms.classes.model.stat;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import com.astralrealms.classes.model.AstralClass;
+import com.astralrealms.classes.model.InputType;
 
 import net.kyori.adventure.key.Key;
 
-public record PlayerStats(Set<StatModifier> modifiers) {
+public record PlayerStats(List<StatModifier> globalModifiers, Map<InputType, List<StatModifier>> inputModifiers) {
 
-    public void addModifier(StatModifier modifier) {
-        modifiers.add(modifier);
+    public void addGlobalModifier(StatModifier modifier) {
+        globalModifiers.add(modifier);
+    }
+
+    public void addInputModifier(InputType inputType, StatModifier modifier) {
+        inputModifiers.computeIfAbsent(inputType, _ -> new ArrayList<>()).add(modifier);
     }
 
     public void removeModifier(StatModifier modifier) {
-        modifiers.remove(modifier);
+        globalModifiers.remove(modifier);
+        inputModifiers.values().forEach(modifiers -> modifiers.remove(modifier));
     }
 
     public void removeModifier(Key key) {
-        modifiers.removeIf(modifier -> modifier.key().equals(key));
+        globalModifiers.removeIf(modifier -> modifier.key().equals(key));
+        inputModifiers.values().forEach(modifiers -> modifiers.removeIf(modifier -> modifier.key().equals(key)));
     }
 
-    public double getStatValue(StatType type, AstralClass astralClass) {
-        return getStatValue(type, astralClass.getBaseStatValue(type));
+    public List<StatModifier> inputModifiers(InputType inputType) {
+        return inputModifiers.getOrDefault(inputType, List.of());
     }
 
-    public double getStatValue(StatType type, double baseValue) {
-        double modifiedValue = baseValue;
-        for (StatModifier modifier : modifiers) {
-            if (modifier.type() != type)
-                continue;
-
-            switch (modifier.operation()) {
-                case ADDITIVE -> modifiedValue += modifier.value();
-                case MULTIPLICATIVE -> modifiedValue *= modifier.value();
-            }
-        }
-        return modifiedValue;
+    public List<StatModifier> inputModifiers(InputType inputType, StatType statType) {
+        return inputModifiers(inputType)
+                .stream()
+                .filter(modifier -> modifier.type().equals(statType))
+                .toList();
     }
 
-    public Map<StatType, Double> applyTo(Map<StatType, Double> baseStats) {
-        Map<StatType, Double> modifiedStats = new HashMap<>(baseStats);
-
-        for (StatModifier modifier : modifiers) {
-            StatType type = modifier.type();
-            StatModifier.Type operation = modifier.operation();
-
-            modifiedStats.putIfAbsent(type, 0.0);
-            double currentValue = modifiedStats.get(type);
-            switch (operation) {
-                case ADDITIVE -> modifiedStats.put(type, currentValue + modifier.value());
-                case MULTIPLICATIVE -> modifiedStats.put(type, currentValue * modifier.value());
-            }
-        }
-
-        return modifiedStats;
+    public List<StatModifier> globalModifiers(StatType statType) {
+        return globalModifiers
+                .stream()
+                .filter(modifier -> modifier.type().equals(statType))
+                .toList();
     }
 }

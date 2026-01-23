@@ -1,0 +1,5 @@
+item: magma_block
+velocity: 0.8
+impact-range: 4
+damage: 4.0
+knockback-velocity: 1.5

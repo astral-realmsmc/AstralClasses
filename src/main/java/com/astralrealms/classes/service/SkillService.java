@@ -91,7 +91,7 @@ public class SkillService {
 
     public void tryTriggerSkill(Player player, AstralClass astralClass, InputType type, Supplier<@Nullable SkillContext> contextSupplier) {
         astralClass.findSkillByInput(type)
-                .ifPresent(skill -> skill.trigger(player, contextSupplier.get()));
+                .ifPresent(skill -> skill.trigger(player, type, contextSupplier.get()));
     }
 
     public Optional<Skill> findById(String id) {

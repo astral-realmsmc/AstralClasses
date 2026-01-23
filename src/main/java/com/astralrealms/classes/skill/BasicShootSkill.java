@@ -14,17 +14,19 @@ import org.bukkit.util.Vector;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import com.astralrealms.classes.AstralClasses;
-import com.astralrealms.classes.model.skill.Skill;
+import com.astralrealms.classes.ClassAPI;
+import com.astralrealms.classes.model.InputType;
+import com.astralrealms.classes.model.skill.AttackSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
+import com.astralrealms.classes.model.stat.StatType;
 import com.destroystokyo.paper.ParticleBuilder;
 
 @ConfigSerializable
-public record BasicShootSkill(int range, int damage, double knockbackVelocity, double helixRadius,
-                              double hitOffset) implements Skill {
+public record BasicShootSkill(int range, double damage, double knockbackVelocity, double helixRadius, double hitOffset) implements AttackSkill {
 
 
     @Override
-    public void trigger(Player player, SkillContext context) {
+    public void trigger(Player player, InputType inputType, SkillContext context) {
         Location eyeLocation = player.getLocation().add(0, player.getEyeHeight() - 0.75, 0);
         eyeLocation.add(player.getLocation().getDirection().multiply(1.0));
 
@@ -83,6 +85,9 @@ public record BasicShootSkill(int range, int damage, double knockbackVelocity, d
             whiteParticle.location(baseLocation.clone().add(offset1)).spawn();
             purpleParticle.location(baseLocation.clone().add(offset2)).spawn();
         }
+
+        // Compute damage stats
+        double damage = ClassAPI.getStat(player, inputType, StatType.DAMAGE, this.damage);
 
         // Apply effects to hit entity (or all entities if no specific hit was found)
         Collection<LivingEntity> hitEntities = hitEntity != null ? List.of(hitEntity) : potentialHits;

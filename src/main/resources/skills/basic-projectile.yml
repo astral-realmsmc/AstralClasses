@@ -1,0 +1,5 @@
+range: 15
+damage: 3.0
+knockback-velocity: 1.5
+helix-radius: 0.4
+hit-offset: 0.25

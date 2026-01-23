@@ -1,2 +1,5 @@
-damage-expressions:
-  left-click: "%abilityDamage% * (%bonus% + %abilityBonus%) * (%classCritDamage% / %classCritChance%)"
+expressions:
+  left-click:
+    damage: "%baseValue% * (%globalBonusValue% + %inputBonusValue%) * (%classCriticalDamage% / %classCriticalChance%)"
+    attack-speed: "%baseValue% * (1 + %inputBonusValue%)"
+    shield: "%baseValue% + %inputBonusValue%"

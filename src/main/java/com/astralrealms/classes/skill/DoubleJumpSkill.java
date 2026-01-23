@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
+import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.InputSkillContext;
 import com.astralrealms.classes.model.skill.context.SkillContext;
@@ -29,7 +30,7 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizont
     private static final Map<UUID, JumpState> jumpStates = new ConcurrentHashMap<>();
 
     @Override
-    public void trigger(Player player, SkillContext context) {
+    public void trigger(Player player, InputType inputType, SkillContext context) {
         if (!(context instanceof InputSkillContext(Input input)))
             throw new IllegalArgumentException("Expected InputSkillContext for DoubleJumpSkill");
         if (!input.isJump())
