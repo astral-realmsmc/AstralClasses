@@ -8,7 +8,7 @@ import com.astralrealms.classes.listener.SkillTriggerListener;
 import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.classes.service.StatService;
-import com.astralrealms.classes.service.StatsListener;
+import com.astralrealms.classes.listener.StatsListener;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
 
 import lombok.Getter;

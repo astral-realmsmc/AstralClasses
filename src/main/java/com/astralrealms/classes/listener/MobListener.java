@@ -14,10 +14,9 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import com.astralrealms.classes.AstralClasses;
+import com.astralrealms.core.model.wrapper.ComponentWrapper;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 public class MobListener implements Listener {
 
@@ -78,8 +77,8 @@ public class MobListener implements Listener {
                 .add(0, heightDist, 0);
 
         TextDisplay display = eyeLoc.getWorld().spawn(spawnLoc, TextDisplay.class);
-
-        display.text(Component.text("-" + (int) e.getFinalDamage(), NamedTextColor.RED, TextDecoration.BOLD));
+        ComponentWrapper component = e.getEntity().isInvulnerable() ? this.plugin.configuration().damageIndicators().immune() : this.plugin.configuration().damageIndicators().damaged();
+        display.text(component.component(Placeholder.unparsed("amount", String.valueOf((int) e.getFinalDamage()))));
 
         // Use CENTER so the text always faces the player (RPG style) without complex manual rotation math
         display.setBillboard(TextDisplay.Billboard.CENTER);
@@ -96,5 +95,8 @@ public class MobListener implements Listener {
 
         // Assume displayTimestamps is a field in your class
         displayTimestamps.put(display, System.currentTimeMillis());
+
+        if (e.getEntity().isInvulnerable())
+            e.setCancelled(true);
     }
 }

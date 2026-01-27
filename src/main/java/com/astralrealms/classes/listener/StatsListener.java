@@ -1,4 +1,4 @@
-package com.astralrealms.classes.service;
+package com.astralrealms.classes.listener;
 
 import org.bukkit.event.Listener;
 
