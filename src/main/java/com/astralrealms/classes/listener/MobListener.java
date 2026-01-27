@@ -95,8 +95,5 @@ public class MobListener implements Listener {
 
         // Assume displayTimestamps is a field in your class
         displayTimestamps.put(display, System.currentTimeMillis());
-
-        if (e.getEntity().isInvulnerable())
-            e.setCancelled(true);
     }
 }

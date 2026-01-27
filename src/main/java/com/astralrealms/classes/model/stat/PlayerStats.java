@@ -8,8 +8,19 @@ import com.astralrealms.classes.model.InputType;
 
 import net.kyori.adventure.key.Key;
 
-public record PlayerStats(List<StatModifier> globalModifiers, Map<InputType, List<StatModifier>> inputModifiers) {
+public record PlayerStats(List<StatModifier> globalModifiers, Map<InputType, List<StatModifier>> inputModifiers,
+                          Map<StatType, Double> statValues) {
 
+    // Stat values
+    public double getStatValue(StatType statType) {
+        return statValues.getOrDefault(statType, 0.0);
+    }
+
+    public void setStatValue(StatType statType, double value) {
+        statValues.put(statType, value);
+    }
+
+    // Modifiers
     public void addGlobalModifier(StatModifier modifier) {
         globalModifiers.add(modifier);
     }

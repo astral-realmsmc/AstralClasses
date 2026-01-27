@@ -24,9 +24,26 @@ public class StatService {
     private final AstralClasses plugin;
     private final Map<UUID, PlayerStats> playerData = new ConcurrentHashMap<>();
 
+    public void initStats(Player player) {
+        PlayerStats stats = new PlayerStats(new ArrayList<>(), new HashMap<>(), new HashMap<>());
+        this.playerData.put(player.getUniqueId(), stats);
+
+        // Compute global stats
+        Map<StatType, Double> computedStats = computeGlobalStats(player);
+
+        // Add variable stats
+        for (Map.Entry<StatType, Double> entry : computedStats.entrySet()) {
+            if (!entry.getKey().variable())
+                continue;
+
+            stats.setStatValue(entry.getKey(), entry.getValue());
+        }
+    }
+
     public void addModifier(Player player, StatModifier modifier) {
-        PlayerStats stats = playerData.computeIfAbsent(player.getUniqueId(), _ -> new PlayerStats(new ArrayList<>(), new HashMap<>()));
-        stats.addGlobalModifier(modifier);
+        PlayerStats stats = playerData.get(player.getUniqueId());
+        if (stats != null)
+            stats.addGlobalModifier(modifier);
     }
 
     public void removeModifier(Player player, StatModifier modifier) {
@@ -144,5 +161,9 @@ public class StatService {
             }
         }
         return modifiedValue;
+    }
+
+    public Optional<PlayerStats> getPlayerStats(Player player) {
+        return Optional.ofNullable(playerData.get(player.getUniqueId()));
     }
 }
