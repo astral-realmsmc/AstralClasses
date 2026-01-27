@@ -51,6 +51,11 @@
             <id>redempt.dev</id>
             <url>https://redempt.dev</url>
         </repository>
+        <!-- placeholderapi -->
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/releases/</url>
+        </repository>
     </repositories>
 
     <!-- dependencies -->
@@ -107,6 +112,13 @@
             <groupId>com.github.Redempt</groupId>
             <artifactId>Crunch</artifactId>
             <version>2.0.3</version>
+        </dependency>
+        <!-- placeholdersapi -->
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.11.7</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

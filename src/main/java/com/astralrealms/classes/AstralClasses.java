@@ -5,6 +5,7 @@ import com.astralrealms.classes.configuration.MainConfiguration;
 import com.astralrealms.classes.configuration.StatsConfiguration;
 import com.astralrealms.classes.listener.MobListener;
 import com.astralrealms.classes.listener.SkillTriggerListener;
+import com.astralrealms.classes.placeholder.StatsPlaceholderExpansion;
 import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.classes.service.StatService;
@@ -52,6 +53,9 @@ public final class AstralClasses extends AstralPaperPlugin {
 
         // API
         ClassAPI.init(this);
+
+        // Placeholder Expansion
+        new StatsPlaceholderExpansion(this).register();
     }
 
     @Override
