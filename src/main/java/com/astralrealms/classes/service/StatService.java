@@ -49,16 +49,16 @@ public class StatService {
 
         // Compute global modifiers
         double globalBonusValue = this.applyModifiers(
-                0.0,
+                1.0,
                 stats != null ? new ArrayList<>(stats.globalModifiers()) : Collections.emptyList()
         );
 
         // Compute input modifiers
-        double inputBonusValue = 0.0;
+        double inputBonusValue = 1.0;
         if (stats != null) {
             List<StatModifier> inputModifiers = stats.inputModifiers().get(inputType);
             if (inputModifiers != null) {
-                inputBonusValue = this.applyModifiers(0.0, inputModifiers);
+                inputBonusValue = this.applyModifiers(1.0, inputModifiers);
             }
         }
 
@@ -74,7 +74,6 @@ public class StatService {
                     "classCriticalDamage",
                     "classCriticalChance"
             );
-
             CompiledExpression compiledExpression = Crunch.compileExpression(expression, env);
             return compiledExpression.evaluate(
                     baseValue,
@@ -99,8 +98,13 @@ public class StatService {
 
                 StatModifier.Operation operation = modifier.operation();
 
-                double currentValue = computedStats.getOrDefault(statType, 0.0);
+                double currentValue = computedStats.getOrDefault(statType, 1.0);
                 double modifierValue = modifier.value();
+                switch (operation) {
+                    case ADDITIVE -> currentValue += modifierValue;
+                    case MULTIPLICATIVE -> currentValue *= modifierValue;
+                }
+                computedStats.put(statType, currentValue);
             }
         }
         return computedStats;
@@ -116,7 +120,7 @@ public class StatService {
             StatModifier.Operation operation = modifier.operation();
             StatType statType = modifier.type();
 
-            double currentValue = computedStats.getOrDefault(statType, 0.0);
+            double currentValue = computedStats.getOrDefault(statType, 1.0);
             double modifierValue = modifier.value();
             switch (operation) {
                 case ADDITIVE -> currentValue += modifierValue;

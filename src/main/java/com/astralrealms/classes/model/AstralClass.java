@@ -17,6 +17,6 @@ public record AstralClass(String id, String name, SkillSet skills, Map<StatType,
     }
 
     public double getBaseStatValue(StatType type) {
-        return this.stats.getOrDefault(type, 0.0);
+        return this.stats.getOrDefault(type, 1.0);
     }
 }

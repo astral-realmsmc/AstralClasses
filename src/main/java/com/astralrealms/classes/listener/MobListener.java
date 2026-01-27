@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.util.Transformation;
@@ -41,36 +42,35 @@ public class MobListener implements Listener {
         }, 0L, 20L);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent e) {
         Entity victim = e.getEntity();
-        if (victim instanceof Player) return; // Keep your logic: only show when hitting non-players
+        if (victim instanceof Player
+            || e.getFinalDamage() == 0)
+            return;
 
-        Entity attacker = e.getDamager();
-        if (attacker instanceof Projectile projectile) {
-            attacker = (Entity) projectile.getShooter();
-        }
-        if (attacker == null) attacker = e.getDamager(); // Fallback for dispensers/etc
+        // Determine the damager
+        Player player;
+        Entity damager = e.getDamager();
+        if (damager instanceof Projectile projectile) {
+            if (projectile.getShooter() instanceof Player player1)
+                player = player1;
+            else
+                return;
+        } else if (damager instanceof Player player1)
+            player = player1;
+        else
+            return;
 
-        // Use EyeLocation for the anchor point so it centers on their view
-        Location eyeLoc = attacker instanceof LivingEntity ? ((LivingEntity) attacker).getEyeLocation() : attacker.getLocation();
-
-        // 1. Calculate Forward Vector (Where the attacker is looking)
+        Location eyeLoc = player.getEyeLocation();
         Vector dir = eyeLoc.getDirection().normalize();
-
-        // 2. Calculate "Left" Vector based purely on Yaw (Horizontal rotation)
-        // This ensures "Left" is always to the player's left side, even if they are looking up or down.
         double yawRad = Math.toRadians(eyeLoc.getYaw());
-        // In Minecraft coordinates (East is +X, South is +Z):
-        // x = cos(yaw) gives the left offset, z = sin(yaw) gives the left offset
         Vector left = new Vector(Math.cos(yawRad), 0, Math.sin(yawRad));
 
-        // 3. Define Offsets
         double distance = 2.1;   // How far in front of the face (Forward)
         double sideDist = 0.7;   // How far to the left (Left)
         double heightDist = 0.2; // How high above the eyes (Top)
 
-        // 4. Calculate the final spawn location
         Location spawnLoc = eyeLoc.clone()
                 .add(dir.multiply(distance))
                 .add(left.multiply(sideDist))
