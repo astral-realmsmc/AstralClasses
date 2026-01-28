@@ -1,18 +1,26 @@
 package com.astralrealms.classes;
 
+import java.util.Arrays;
+
 import com.astralrealms.classes.command.ClassCommand;
+import com.astralrealms.classes.command.ModifiersCommand;
+import com.astralrealms.classes.command.context.KeyContextResolver;
 import com.astralrealms.classes.configuration.MainConfiguration;
 import com.astralrealms.classes.configuration.StatsConfiguration;
 import com.astralrealms.classes.listener.MobListener;
 import com.astralrealms.classes.listener.SkillTriggerListener;
+import com.astralrealms.classes.listener.StatsListener;
+import com.astralrealms.classes.model.InputType;
+import com.astralrealms.classes.model.stat.StatModifier;
+import com.astralrealms.classes.model.stat.StatType;
 import com.astralrealms.classes.placeholder.StatsPlaceholderExpansion;
 import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.classes.service.StatService;
-import com.astralrealms.classes.listener.StatsListener;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
 
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
 
 @Getter
 public final class AstralClasses extends AstralPaperPlugin {
@@ -39,7 +47,15 @@ public final class AstralClasses extends AstralPaperPlugin {
         this.loadConfiguration();
 
         // Commands
+        // -- Completion
+        this.registerCompletion("statType", (_) -> Arrays.stream(StatType.values()).map(StatType::name).toList());
+        this.registerCompletion("operation", (_) -> Arrays.stream(StatModifier.Operation.values()).map(Enum::name).toList());
+        this.registerCompletion("inputType", (_) -> Arrays.stream(InputType.values()).map(Enum::name).toList());
+        // -- Context
+        this.registerContext(Key.class, new KeyContextResolver());
+        // -- Command
         this.registerCommand(new ClassCommand());
+        this.registerCommand(new ModifiersCommand());
 
         // Listeners
         this.registerListeners(

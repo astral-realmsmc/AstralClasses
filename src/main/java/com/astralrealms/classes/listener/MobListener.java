@@ -4,11 +4,13 @@ import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.AxisAngle4f;
@@ -42,24 +44,11 @@ public class MobListener implements Listener {
         }, 0L, 20L);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onDamage(EntityDamageByEntityEvent e) {
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onDamage(EntityDamageEvent e) {
         Entity victim = e.getEntity();
         if (victim instanceof Player
-            || e.getFinalDamage() == 0)
-            return;
-
-        // Determine the damager
-        Player player;
-        Entity damager = e.getDamager();
-        if (damager instanceof Projectile projectile) {
-            if (projectile.getShooter() instanceof Player player1)
-                player = player1;
-            else
-                return;
-        } else if (damager instanceof Player player1)
-            player = player1;
-        else
+            || !(e.getDamageSource().getDirectEntity() instanceof Player player))
             return;
 
         Location eyeLoc = player.getEyeLocation();
@@ -77,7 +66,7 @@ public class MobListener implements Listener {
                 .add(0, heightDist, 0);
 
         TextDisplay display = eyeLoc.getWorld().spawn(spawnLoc, TextDisplay.class);
-        ComponentWrapper component = e.getEntity().isInvulnerable() ? this.plugin.configuration().damageIndicators().immune() : this.plugin.configuration().damageIndicators().damaged();
+        ComponentWrapper component = e.getEntity().isInvulnerable() || e.getFinalDamage() == 0 ? this.plugin.configuration().damageIndicators().immune() : this.plugin.configuration().damageIndicators().damaged();
         display.text(component.component(Placeholder.unparsed("amount", String.valueOf((int) e.getFinalDamage()))));
 
         // Use CENTER so the text always faces the player (RPG style) without complex manual rotation math
