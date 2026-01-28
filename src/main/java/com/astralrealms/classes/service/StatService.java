@@ -79,7 +79,6 @@ public class StatService {
             }
         }
 
-
         // Compute formula if exists
         String expression = this.plugin.statsConfiguration().getExpression(inputType, statType);
         if (expression != null && !expression.isEmpty()) {

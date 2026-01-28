@@ -127,7 +127,7 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
         Collection<LivingEntity> hitEntities = hitEntity != null ? List.of(hitEntity) : potentialHits;
 
         // Record hit in state
-        if (!hitEntities.isEmpty())
+        if (!hitEntities.isEmpty() && hitEntities.stream().anyMatch(e -> !e.isDead() && e != player && !e.isInvulnerable()))
             editState(player, BasicShootState::recordHit);
 
         // Apply effects
