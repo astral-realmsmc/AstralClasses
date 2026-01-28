@@ -46,8 +46,11 @@ public class StatService {
 
                     long lastRegenTime = lastRegenTimes.getOrDefault(statType, 0L);
                     if (currentTime - lastRegenTime >= 1000L) {
-                        // TODO: Cap regenerated stat to maximum value
+                        double maxStatValue = stats.computedStats().get(statType);
                         double currentValue = stats.getStatValue(statType);
+                        if (currentValue >= maxStatValue)
+                            continue;
+                        
                         stats.setStatValue(statType, currentValue + regenAmount);
                         lastRegenTimes.put(statType, currentTime);
                     }
@@ -63,7 +66,7 @@ public class StatService {
                     continue;
 
                 double shieldValue = stats.getStatValue(StatType.SHIELD);
-                double maximumShieldValue = this.computeGlobalStats(player).get(StatType.SHIELD);
+                double maximumShieldValue = stats.computedStats().get(StatType.SHIELD);
                 if (maximumShieldValue <= 0)
                     continue;
 
@@ -86,11 +89,14 @@ public class StatService {
     }
 
     public void initStats(Player player) {
-        PlayerStats stats = new PlayerStats(new ArrayList<>(), new HashMap<>(), new HashMap<>(), new ConcurrentHashMap<>());
+        PlayerStats stats = new PlayerStats(new ArrayList<>(), new HashMap<>(), new HashMap<>(), new ConcurrentHashMap<>(), new HashMap<>());
         this.playerData.put(player.getUniqueId(), stats);
 
         // Compute global stats
         Map<StatType, Double> computedStats = computeGlobalStats(player);
+
+        // Cache computed stats
+        stats.computedStats().putAll(computedStats);
 
         // Add variable stats
         for (Map.Entry<StatType, Double> entry : computedStats.entrySet()) {
@@ -103,20 +109,38 @@ public class StatService {
 
     public void addModifier(Player player, StatModifier modifier) {
         PlayerStats stats = playerData.get(player.getUniqueId());
-        if (stats != null)
-            stats.addGlobalModifier(modifier);
+        if (stats == null)
+            return;
+
+        stats.addGlobalModifier(modifier);
+
+        // Recompute global stats
+        Map<StatType, Double> computedStats = computeGlobalStats(player);
+        stats.computedStats().putAll(computedStats);
     }
 
     public void removeModifier(Player player, StatModifier modifier) {
         PlayerStats stats = playerData.get(player.getUniqueId());
-        if (stats != null)
-            stats.removeModifier(modifier);
+        if (stats == null)
+            return;
+
+        stats.removeModifier(modifier);
+
+        // Recompute global stats
+        Map<StatType, Double> computedStats = computeGlobalStats(player);
+        stats.computedStats().putAll(computedStats);
     }
 
     public void removeModifier(Player player, Key key) {
         PlayerStats stats = playerData.get(player.getUniqueId());
-        if (stats != null)
-            stats.removeModifier(key);
+        if (stats == null)
+            return;
+
+        stats.removeModifier(key);
+
+        // Recompute global stats
+        Map<StatType, Double> computedStats = computeGlobalStats(player);
+        stats.computedStats().putAll(computedStats);
     }
 
     public double computeStat(Player player, InputType inputType, StatType statType, double value) {

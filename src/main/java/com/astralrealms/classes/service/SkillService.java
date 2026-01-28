@@ -22,6 +22,7 @@ import com.astralrealms.classes.configuration.serializer.VectorTypeSerializer;
 import com.astralrealms.classes.model.AstralClass;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.Tickable;
+import com.astralrealms.classes.model.stat.StatType;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
@@ -112,8 +113,15 @@ public class SkillService {
                         long currentTime = System.currentTimeMillis();
                         Map<Class<? extends Skill>, Long> playerTimestamps = this.lastUsedTimestamps.computeIfAbsent(player.getUniqueId(), _ -> new HashMap<>());
                         long lastUsed = playerTimestamps.getOrDefault(skill.getClass(), 0L);
-                        long cooldownMillis = cooldownSkill.cooldown().toMillis();
-                        if (currentTime - lastUsed < cooldownMillis)
+
+                        // Get the modified cooldown based on ATTACK_SPEED
+                        long baseCooldownMillis = cooldownSkill.cooldown().toMillis();
+                        double attackSpeed = this.plugin.stats().getPlayerStats(player)
+                                .map(stats -> stats.computedStats().getOrDefault(StatType.ATTACK_SPEED, 1.0))
+                                .orElse(1.0);
+                        long modifiedCooldownMillis = (long) (baseCooldownMillis / attackSpeed);
+
+                        if (currentTime - lastUsed < modifiedCooldownMillis)
                             return;
 
                         playerTimestamps.put(skill.getClass(), currentTime);
