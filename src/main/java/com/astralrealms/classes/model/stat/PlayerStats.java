@@ -9,7 +9,7 @@ import com.astralrealms.classes.model.InputType;
 import net.kyori.adventure.key.Key;
 
 public record PlayerStats(List<StatModifier> globalModifiers, Map<InputType, List<StatModifier>> inputModifiers,
-                          Map<StatType, Double> statValues) {
+                          Map<StatType, Double> statValues, Map<StatType, Long> lastRegenTimes) {
 
     // Stat values
     public double getStatValue(StatType statType) {

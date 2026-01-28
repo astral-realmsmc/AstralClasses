@@ -9,6 +9,5 @@ public record MainConfiguration(String defaultClass, DamageIndicators damageIndi
 
     @ConfigSerializable
     public record DamageIndicators(ComponentWrapper immune, ComponentWrapper damaged) {
-
     }
 }

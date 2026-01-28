@@ -3,6 +3,7 @@ package com.astralrealms.classes.service;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import com.astralrealms.classes.AstralClasses;
@@ -12,20 +13,46 @@ import com.astralrealms.classes.model.stat.PlayerStats;
 import com.astralrealms.classes.model.stat.StatModifier;
 import com.astralrealms.classes.model.stat.StatType;
 
-import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.key.Key;
 import redempt.crunch.CompiledExpression;
 import redempt.crunch.Crunch;
 import redempt.crunch.functional.EvaluationEnvironment;
 
-@RequiredArgsConstructor
 public class StatService {
 
     private final AstralClasses plugin;
     private final Map<UUID, PlayerStats> playerData = new ConcurrentHashMap<>();
 
+    public StatService(AstralClasses plugin) {
+        this.plugin = plugin;
+
+        // Regeneration task
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            Map<StatType, Double> regenPerSecond = this.plugin.statsConfiguration().regenerationPerSecond();
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                PlayerStats stats = playerData.get(player.getUniqueId());
+                if (stats == null)
+                    continue;
+
+                Map<StatType, Long> lastRegenTimes = stats.lastRegenTimes();
+                long currentTime = System.currentTimeMillis();
+                for (Map.Entry<StatType, Double> entry : regenPerSecond.entrySet()) {
+                    StatType statType = entry.getKey();
+                    double regenAmount = entry.getValue();
+
+                    long lastRegenTime = lastRegenTimes.getOrDefault(statType, 0L);
+                    if (currentTime - lastRegenTime >= 1000L) {
+                        double currentValue = stats.getStatValue(statType);
+                        stats.setStatValue(statType, currentValue + regenAmount);
+                        lastRegenTimes.put(statType, currentTime);
+                    }
+                }
+            }
+        }, 100L, 20L);
+    }
+
     public void initStats(Player player) {
-        PlayerStats stats = new PlayerStats(new ArrayList<>(), new HashMap<>(), new HashMap<>());
+        PlayerStats stats = new PlayerStats(new ArrayList<>(), new HashMap<>(), new HashMap<>(), new ConcurrentHashMap<>());
         this.playerData.put(player.getUniqueId(), stats);
 
         // Compute global stats

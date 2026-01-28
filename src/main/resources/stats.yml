@@ -3,3 +3,6 @@ expressions:
     damage: "baseValue * (globalBonusValue + inputBonusValue) * (classCriticalDamage / classCriticalChance)"
     attack-speed: "baseValue * (1 + inputBonusValue)"
     shield: "baseValue + inputBonusValue"
+
+regeneration-per-second:
+  shield: 1
