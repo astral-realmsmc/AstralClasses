@@ -6,4 +6,5 @@ authors: [ Roch Blondiaux ]
 depend:
   - AstralCore
   - PlaceholderAPI
+  - packetevents
   #- AstralSync

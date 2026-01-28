@@ -12,6 +12,10 @@ import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.stat.PlayerStats;
 import com.astralrealms.classes.model.stat.StatModifier;
 import com.astralrealms.classes.model.stat.StatType;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.attribute.Attribute;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 
 import net.kyori.adventure.key.Key;
 import redempt.crunch.CompiledExpression;
@@ -42,6 +46,7 @@ public class StatService {
 
                     long lastRegenTime = lastRegenTimes.getOrDefault(statType, 0L);
                     if (currentTime - lastRegenTime >= 1000L) {
+                        // TODO: Cap regenerated stat to maximum value
                         double currentValue = stats.getStatValue(statType);
                         stats.setStatValue(statType, currentValue + regenAmount);
                         lastRegenTimes.put(statType, currentTime);
@@ -49,6 +54,35 @@ public class StatService {
                 }
             }
         }, 100L, 20L);
+
+        // Shield display
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                PlayerStats stats = playerData.get(player.getUniqueId());
+                if (stats == null)
+                    continue;
+
+                double shieldValue = stats.getStatValue(StatType.SHIELD);
+                double maximumShieldValue = this.computeGlobalStats(player).get(StatType.SHIELD);
+                if (maximumShieldValue <= 0)
+                    continue;
+
+                double value = shieldValue / maximumShieldValue;
+
+                Attribute attribute = Attributes.ARMOR;
+                WrapperPlayServerUpdateAttributes packet = new WrapperPlayServerUpdateAttributes(
+                        player.getEntityId(),
+                        List.of(
+                                new WrapperPlayServerUpdateAttributes.Property(
+                                        attribute,
+                                        value * 20,
+                                        Collections.emptyList()
+                                )
+                        )
+                );
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
+            }
+        }, 100L, 5L);
     }
 
     public void initStats(Player player) {

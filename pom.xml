@@ -56,6 +56,16 @@
             <id>placeholderapi</id>
             <url>https://repo.extendedclip.com/releases/</url>
         </repository>
+        <!-- codemc/releases -->
+        <repository>
+            <id>codemc-releases</id>
+            <url>https://repo.codemc.io/repository/maven-releases/</url>
+        </repository>
+        <!-- codemc/snapshots -->
+        <repository>
+            <id>codemc-snapshots</id>
+            <url>https://repo.codemc.io/repository/maven-snapshots/</url>
+        </repository>
     </repositories>
 
     <!-- dependencies -->
@@ -118,6 +128,13 @@
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
             <version>2.11.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- packetevents -->
+        <dependency>
+            <groupId>com.github.retrooper</groupId>
+            <artifactId>packetevents-spigot</artifactId>
+            <version>2.11.2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
