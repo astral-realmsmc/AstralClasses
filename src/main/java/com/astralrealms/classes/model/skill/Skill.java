@@ -16,4 +16,5 @@ public interface Skill {
      */
     void trigger(Player player, InputType inputType, @Nullable SkillContext context);
 
+    double damage();
 }

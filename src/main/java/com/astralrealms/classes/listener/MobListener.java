@@ -22,7 +22,9 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import com.astralrealms.classes.AstralClasses;
+import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.util.Constants;
+import com.astralrealms.classes.util.GameUtils;
 import com.astralrealms.core.model.wrapper.ComponentWrapper;
 
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -95,15 +97,20 @@ public class MobListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onHandDamage(EntityDamageByEntityEvent e) {
         // Only handle damage from players
-        if (!(e.getDamager() instanceof Player))
+        if (!(e.getDamager() instanceof Player player))
             return;
 
         // Allow magic damage (skills/spells) to pass through
         if (e.getDamageSource().getDamageType().equals(DamageType.MAGIC))
             return;
 
-        // Cancel all physical/melee damage from hand attacks
-        // This prevents players from dealing damage with their hand, but allows skills
-        e.setCancelled(true);
+        // Apply damage and effects
+        this.plugin.classes()
+                .findByPlayer(player)
+                .findSkillByInput(InputType.LEFT_CLICK)
+                .ifPresentOrElse(skill -> {
+                    double damage = GameUtils.computeDamage(player, InputType.LEFT_CLICK, skill.damage());
+                    e.setDamage(damage);
+                }, () -> e.setCancelled(true));
     }
 }
