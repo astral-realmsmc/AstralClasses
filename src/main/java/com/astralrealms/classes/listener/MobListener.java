@@ -94,10 +94,16 @@ public class MobListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onHandDamage(EntityDamageByEntityEvent e) {
-        if (!(e.getDamager() instanceof Player)
-            || e.getDamageSource().getDamageType().equals(DamageType.MAGIC))
+        // Only handle damage from players
+        if (!(e.getDamager() instanceof Player))
             return;
 
-        e.setDamage(0);
+        // Allow magic damage (skills/spells) to pass through
+        if (e.getDamageSource().getDamageType().equals(DamageType.MAGIC))
+            return;
+
+        // Cancel all physical/melee damage from hand attacks
+        // This prevents players from dealing damage with their hand, but allows skills
+        e.setCancelled(true);
     }
 }
