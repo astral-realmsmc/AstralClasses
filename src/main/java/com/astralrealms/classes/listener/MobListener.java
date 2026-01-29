@@ -2,8 +2,10 @@ package com.astralrealms.classes.listener;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
@@ -26,6 +28,9 @@ import com.astralrealms.core.model.wrapper.ComponentWrapper;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 public class MobListener implements Listener {
+
+    private static final Color TRANSPARENT_COLOR = Color.fromARGB(0, 0, 0, 0);
+    private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
 
     private final AstralClasses plugin;
     private final Map<TextDisplay, Long> displayTimestamps;
@@ -61,9 +66,9 @@ public class MobListener implements Listener {
         Vector left = new Vector(Math.cos(yawRad), 0, Math.sin(yawRad));
 
         Location spawnLoc = eyeLoc.clone()
-                .add(dir.multiply(Constants.Display.DISTANCE))
-                .add(left.multiply(Constants.Display.SIDE_OFFSET))
-                .add(0, Constants.Display.HEIGHT_OFFSET, 0);
+                .add(dir.multiply(Constants.Display.DISTANCE + RANDOM.nextDouble(-0.2, 0.2)))
+                .add(left.multiply(Constants.Display.SIDE_OFFSET + RANDOM.nextDouble(-0.2, 0.2)))
+                .add(0, Constants.Display.HEIGHT_OFFSET + RANDOM.nextDouble(-0.2, 0.2), 0);
 
         TextDisplay display = eyeLoc.getWorld().spawn(spawnLoc, TextDisplay.class);
         ComponentWrapper component = e.getEntity().isInvulnerable() || e.getFinalDamage() == 0 ? this.plugin.configuration().damageIndicators().immune() : this.plugin.configuration().damageIndicators().damaged();
@@ -73,6 +78,7 @@ public class MobListener implements Listener {
         display.setBillboard(TextDisplay.Billboard.CENTER);
         display.setAlignment(TextDisplay.TextAlignment.CENTER);
         display.setShadowed(true);
+        display.setBackgroundColor(TRANSPARENT_COLOR);
 
         float scale = Constants.Display.TEXT_SCALE;
         display.setTransformation(new Transformation(

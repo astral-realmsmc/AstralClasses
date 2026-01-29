@@ -1,7 +1,6 @@
 package com.astralrealms.classes.skill;
 
 import java.time.Duration;
-import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Input;

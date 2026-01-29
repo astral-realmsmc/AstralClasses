@@ -16,12 +16,12 @@ public final class Constants {
         /**
          * How far in front of the face to spawn damage indicators.
          */
-        public static final double DISTANCE = 2.1;
+        public static final double DISTANCE = 2.3;
 
         /**
          * How far to the left to spawn damage indicators.
          */
-        public static final double SIDE_OFFSET = 0.7;
+        public static final double SIDE_OFFSET = 0.8;
 
         /**
          * How high above the eyes to spawn damage indicators.
