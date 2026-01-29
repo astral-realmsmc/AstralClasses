@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.BlockFace;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
@@ -158,7 +158,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         // Number of particles and expansion duration
         final int particlesPerSphere = 40;
         final int spheres = 6;
-        final long delayPerSphere = 2L;
+        final long delayPerSphere = 1L;
 
         for (int sphere = 0; sphere < spheres; sphere++) {
             final int currentSphere = sphere;
@@ -179,11 +179,12 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
                     // Alternate between purple and white
                     if (currentSphere % 2 == 0) {
-                        Particle.PORTAL.builder()
+                        Particle.DUST.builder()
                                 .location(particleLoc)
                                 .count(2)
                                 .offset(0, 0, 0)
                                 .extra(0)
+                                .color(Color.RED)
                                 .spawn();
                     } else {
                         Particle.CLOUD.builder()
@@ -224,7 +225,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         // Number of particles and expansion duration
         final int particlesPerRing = 30;
         final int rings = 8;
-        final long delayPerRing = 2L;
+        final long delayPerRing = 1L;
 
         for (int ring = 0; ring < rings; ring++) {
             final int currentRing = ring;
@@ -242,12 +243,13 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
                     // Alternate between purple and white
                     if (currentRing % 2 == 0) {
-                        // Purple particles - use PORTAL for purple effect
-                        Particle.PORTAL.builder()
+                        // Purple particles - red
+                        Particle.DUST.builder()
                                 .location(particleLoc)
-                                .count(2)
+                                .count(4)
                                 .offset(0, 0, 0)
                                 .extra(0)
+                                .color(Color.RED)
                                 .spawn();
                     } else {
                         // White particles - use CLOUD for white effect
