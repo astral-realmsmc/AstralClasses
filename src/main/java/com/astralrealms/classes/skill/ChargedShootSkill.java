@@ -108,6 +108,11 @@ public record ChargedShootSkill(double damage, Duration cooldown) implements Coo
                 if (entity instanceof Player || hitEntities.contains(entity.getUniqueId())) continue;
 
                 if (entity instanceof LivingEntity livingEntity) {
+                    // Check if there's a clear line of sight from projectile to entity
+                    if (!loc.hasLineOfSight(livingEntity.getLocation())) {
+                        continue;
+                    }
+
                     livingEntity.damage(damage, DamageSource.builder(DamageType.MAGIC)
                             .withDirectEntity(player)
                             .build());

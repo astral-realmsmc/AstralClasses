@@ -104,8 +104,13 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
                 2.0 * helixRadius + hitOffset);
 
         if (!potentialHits.isEmpty()) {
-            // Find the closest hit entity
+            // Find the closest hit entity that has line of sight
             for (LivingEntity entity : potentialHits) {
+                // Check if there's a clear line of sight (no blocks in the way)
+                if (!eyeLocation.hasLineOfSight(entity.getLocation())) {
+                    continue;
+                }
+
                 Vector toEntity = entity.getLocation().toVector().subtract(eyeLocation.toVector());
                 double distance = toEntity.dot(direction);
                 // Ensure distance is positive and within range
