@@ -21,7 +21,6 @@ import com.astralrealms.classes.configuration.serializer.VectorTypeSerializer;
 import com.astralrealms.classes.model.AstralClass;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.Tickable;
-import com.astralrealms.classes.model.stat.StatType;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
@@ -112,11 +111,15 @@ public class SkillService {
                     if (skill instanceof CooldownSkill cooldownSkill) {
                         if (!cooldownManager.canUse(player, cooldownSkill))
                             return;
-
                         cooldownManager.recordUsage(player, skill);
                     }
 
-                    skill.trigger(player, type, contextSupplier.get());
+                    Runnable run = () -> skill.trigger(player, type, contextSupplier.get());
+
+                    if (Bukkit.isPrimaryThread())
+                        run.run();
+                    else
+                        Bukkit.getScheduler().runTask(this.plugin, run);
                 });
     }
 

@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.jspecify.annotations.NonNull;
 
 import com.astralrealms.classes.AstralClasses;
+import com.astralrealms.classes.model.InputBuffer;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.SimpleInput;
 import com.astralrealms.classes.model.skill.context.SkillContext;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class InputPacketListener extends SimplePacketListenerAbstract {
 
     private final AstralClasses plugin;
+    private final InputBuffer inputBuffer = new InputBuffer();
 
     @Override
     public void onPacketPlayReceive(@NonNull PacketPlayReceiveEvent event) {
@@ -42,7 +44,14 @@ public class InputPacketListener extends SimplePacketListenerAbstract {
         } else if (event.getPacketType().equals(PacketType.Play.Client.PLAYER_INPUT)) {
             WrapperPlayClientPlayerInput packet = new WrapperPlayClientPlayerInput(event);
 
-            this.plugin.skills().tryTriggerSkill(player, InputType.SPACE, () -> SkillContext.ofInput(new SimpleInput(packet)));
+            // Only trigger if the jump state changed from false to true
+            if (this.inputBuffer.onInputReceived(player, InputType.SPACE, packet)) {
+                this.plugin.skills().tryTriggerSkill(player, InputType.SPACE, () -> SkillContext.ofInput(new SimpleInput(packet)));
+            }
         }
+    }
+
+    public InputBuffer inputBuffer() {
+        return this.inputBuffer;
     }
 }

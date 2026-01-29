@@ -12,14 +12,12 @@ public enum InputType {
     SWAP_HANDS;
 
     public static InputType fromInput(Input input) {
-        if (input.isSneak())
-            return SNEAK;
-        if (input.isSprint())
-            return SPRINT;
         if (input.isJump())
             return SPACE;
         if (input.isSneak())
             return SNEAK;
+        if (input.isSprint())
+            return SPRINT;
         return null;
     }
 }
