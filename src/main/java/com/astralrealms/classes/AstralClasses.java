@@ -8,6 +8,7 @@ import com.astralrealms.classes.command.context.KeyContextResolver;
 import com.astralrealms.classes.configuration.MainConfiguration;
 import com.astralrealms.classes.configuration.StatsConfiguration;
 import com.astralrealms.classes.listener.MobListener;
+import com.astralrealms.classes.listener.PlayerCleanupListener;
 import com.astralrealms.classes.listener.SkillTriggerListener;
 import com.astralrealms.classes.listener.StatsListener;
 import com.astralrealms.classes.model.InputType;
@@ -38,10 +39,10 @@ public final class AstralClasses extends AstralPaperPlugin {
     public void onEnable() {
         super.onEnable();
 
-        // Services
-        this.skills = new SkillService(this);
-        this.classes = new ClassService(this);
+        // Services (StatService must be initialized before SkillService)
         this.stats = new StatService(this);
+        this.skills = new SkillService(this, this.stats);
+        this.classes = new ClassService(this);
 
         // Configuration
         this.loadConfiguration();
@@ -58,11 +59,16 @@ public final class AstralClasses extends AstralPaperPlugin {
         this.registerCommand(new ModifiersCommand());
 
         // Listeners
+        PlayerCleanupListener cleanupListener = new PlayerCleanupListener();
+        this.registerListener(cleanupListener);
         this.registerListeners(
                 new SkillTriggerListener(this),
                 new MobListener(this),
                 new StatsListener(this)
         );
+
+        // Register cleanup handlers
+        this.skills.cooldownManager().clearOnQuit(cleanupListener);
 
         // Sync
         // AstralSyncAPI.registerAdapter(new ClassSnapshotAdapter(this));

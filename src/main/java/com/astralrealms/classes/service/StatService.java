@@ -26,20 +26,33 @@ public class StatService {
 
     private final AstralClasses plugin;
     private final Map<UUID, PlayerStats> playerData = new ConcurrentHashMap<>();
+    private final Set<UUID> needsRegeneration = ConcurrentHashMap.newKeySet();
 
     public StatService(AstralClasses plugin) {
         this.plugin = plugin;
 
-        // Regeneration task
+        // Regeneration task - lazy, only processes damaged players
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             Map<StatType, Double> regenPerSecond = this.plugin.statsConfiguration().regenerationPerSecond();
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                PlayerStats stats = playerData.get(player.getUniqueId());
-                if (stats == null)
-                    continue;
+            long currentTime = System.currentTimeMillis();
 
+            // Only process players who need regeneration
+            for (UUID uuid : needsRegeneration) {
+                Player player = Bukkit.getPlayer(uuid);
+                if (player == null || !player.isOnline()) {
+                    needsRegeneration.remove(uuid);
+                    continue;
+                }
+
+                PlayerStats stats = playerData.get(uuid);
+                if (stats == null) {
+                    needsRegeneration.remove(uuid);
+                    continue;
+                }
+
+                boolean fullyHealed = true;
                 Map<StatType, Long> lastRegenTimes = stats.lastRegenTimes();
-                long currentTime = System.currentTimeMillis();
+
                 for (Map.Entry<StatType, Double> entry : regenPerSecond.entrySet()) {
                     StatType statType = entry.getKey();
                     double regenAmount = entry.getValue();
@@ -48,12 +61,17 @@ public class StatService {
                     if (currentTime - lastRegenTime >= 1000L) {
                         double maxStatValue = stats.computedStats().get(statType);
                         double currentValue = stats.getStatValue(statType);
-                        if (currentValue >= maxStatValue)
-                            continue;
-                        
-                        stats.setStatValue(statType, currentValue + regenAmount);
-                        lastRegenTimes.put(statType, currentTime);
+                        if (currentValue < maxStatValue) {
+                            stats.setStatValue(statType, currentValue + regenAmount);
+                            lastRegenTimes.put(statType, currentTime);
+                            fullyHealed = false;
+                        }
                     }
+                }
+
+                // Remove from set if fully healed
+                if (fullyHealed) {
+                    needsRegeneration.remove(uuid);
                 }
             }
         }, 100L, 20L);
@@ -88,23 +106,48 @@ public class StatService {
         }, 100L, 5L);
     }
 
+    /**
+     * Recompute and update cached stats for a player.
+     * Extracted to eliminate duplication in initStats, addModifier, removeModifier.
+     *
+     * @param player The player to recompute stats for
+     */
+    private void recomputeStats(Player player) {
+        Map<StatType, Double> computedStats = computeGlobalStats(player);
+        PlayerStats stats = playerData.get(player.getUniqueId());
+        if (stats != null) {
+            stats.computedStats().putAll(computedStats);
+        }
+    }
+
     public void initStats(Player player) {
         PlayerStats stats = new PlayerStats(new ArrayList<>(), new HashMap<>(), new HashMap<>(), new ConcurrentHashMap<>(), new HashMap<>());
         this.playerData.put(player.getUniqueId(), stats);
 
-        // Compute global stats
-        Map<StatType, Double> computedStats = computeGlobalStats(player);
-
-        // Cache computed stats
-        stats.computedStats().putAll(computedStats);
+        // Compute and cache global stats
+        recomputeStats(player);
 
         // Add variable stats
+        Map<StatType, Double> computedStats = stats.computedStats();
         for (Map.Entry<StatType, Double> entry : computedStats.entrySet()) {
             if (!entry.getKey().variable())
                 continue;
 
             stats.setStatValue(entry.getKey(), entry.getValue());
         }
+
+        // Add to regeneration set
+        markNeedsRegeneration(player);
+    }
+
+    /**
+     * Mark a player as needing regeneration.
+     * Called when a player takes damage.
+     *
+     * @param player The player to mark
+     */
+    public void markNeedsRegeneration(Player player) {
+        needsRegeneration.add(player.getUniqueId());
     }
 
     public void addModifier(Player player, StatModifier modifier) {
@@ -113,10 +156,7 @@ public class StatService {
             return;
 
         stats.addGlobalModifier(modifier);
-
-        // Recompute global stats
-        Map<StatType, Double> computedStats = computeGlobalStats(player);
-        stats.computedStats().putAll(computedStats);
+        recomputeStats(player);
     }
 
     public void removeModifier(Player player, StatModifier modifier) {
@@ -125,10 +165,7 @@ public class StatService {
             return;
 
         stats.removeModifier(modifier);
-
-        // Recompute global stats
-        Map<StatType, Double> computedStats = computeGlobalStats(player);
-        stats.computedStats().putAll(computedStats);
+        recomputeStats(player);
     }
 
     public void removeModifier(Player player, Key key) {
@@ -137,10 +174,7 @@ public class StatService {
             return;
 
         stats.removeModifier(key);
-
-        // Recompute global stats
-        Map<StatType, Double> computedStats = computeGlobalStats(player);
-        stats.computedStats().putAll(computedStats);
+        recomputeStats(player);
     }
 
     public double computeStat(Player player, InputType inputType, StatType statType, double value) {
@@ -197,14 +231,11 @@ public class StatService {
             for (StatModifier modifier : modifiers) {
                 if (modifier.type() != statType) continue;
 
-                StatModifier.Operation operation = modifier.operation();
+                StatModifier.StatOperation operation = modifier.operation();
 
                 double currentValue = computedStats.getOrDefault(statType, 1.0);
                 double modifierValue = modifier.value();
-                switch (operation) {
-                    case ADDITIVE -> currentValue += modifierValue;
-                    case MULTIPLICATIVE -> currentValue *= modifierValue;
-                }
+                currentValue = operation.apply(currentValue, modifierValue);
                 computedStats.put(statType, currentValue);
             }
         }
@@ -218,15 +249,12 @@ public class StatService {
         PlayerStats stats = playerData.get(player.getUniqueId());
 
         for (StatModifier modifier : stats.globalModifiers()) {
-            StatModifier.Operation operation = modifier.operation();
+            StatModifier.StatOperation operation = modifier.operation();
             StatType statType = modifier.type();
 
             double currentValue = computedStats.getOrDefault(statType, 1.0);
             double modifierValue = modifier.value();
-            switch (operation) {
-                case ADDITIVE -> currentValue += modifierValue;
-                case MULTIPLICATIVE -> currentValue *= modifierValue;
-            }
+            currentValue = operation.apply(currentValue, modifierValue);
 
             computedStats.put(statType, currentValue);
         }
@@ -237,12 +265,9 @@ public class StatService {
     private double applyModifiers(double value, List<StatModifier> modifiers) {
         double modifiedValue = value;
         for (StatModifier modifier : modifiers) {
-            StatModifier.Operation operation = modifier.operation();
+            StatModifier.StatOperation operation = modifier.operation();
             double modifierValue = modifier.value();
-            switch (operation) {
-                case ADDITIVE -> modifiedValue += modifierValue;
-                case MULTIPLICATIVE -> modifiedValue *= modifierValue;
-            }
+            modifiedValue = operation.apply(modifiedValue, modifierValue);
         }
         return modifiedValue;
     }

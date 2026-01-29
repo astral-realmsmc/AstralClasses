@@ -7,8 +7,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -17,12 +18,12 @@ import org.bukkit.inventory.ItemStack;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import com.astralrealms.classes.AstralClasses;
-import com.astralrealms.classes.ClassAPI;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.skill.AttackSkill;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
-import com.astralrealms.classes.model.stat.StatType;
+import com.astralrealms.classes.util.Effects;
+import com.astralrealms.classes.util.GameUtils;
 import com.destroystokyo.paper.ParticleBuilder;
 
 @ConfigSerializable
@@ -38,7 +39,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         grenade.setVelocity(player.getEyeLocation().getDirection().multiply(velocity));
 
         // Compute damage
-        double damage = ClassAPI.getStat(player, inputType, StatType.DAMAGE, this.damage);
+        double damage = GameUtils.computeDamage(player, inputType, this.damage);
 
         // When the grenade lands, create an explosion effect and remove the grenade
         AtomicReference<Location> lastLocation = new AtomicReference<>(grenade.getLocation());
@@ -58,12 +59,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             }
 
             // Create explosion effect
-            Particle.EXPLOSION.builder()
-                    .location(lastLocation.get())
-                    .count(5)
-                    .offset(0.5, 0.5, 0.5)
-                    .extra(0)
-                    .spawn();
+            Effects.explosion(lastLocation.get());
 
             // Remove the grenade item
             grenade.remove();
@@ -76,11 +72,13 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             for (Entity entity : nearbyEntities) {
                 entity.setVelocity(entity.getLocation().toVector().subtract(grenade.getLocation().toVector()).normalize().multiply(this.knockbackVelocity).setY(0.5));
                 if (entity instanceof LivingEntity livingEntity && !(entity instanceof Player))  // Prevent friendly fire
-                    livingEntity.damage(damage, player);
+                    livingEntity.damage(damage, DamageSource.builder(DamageType.MAGIC)
+                            .withDirectEntity(player)
+                            .build());
             }
 
             // Play sound
-            grenade.getWorld().playSound(lastLocation.get(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
+            Effects.playExplosionSound(lastLocation.get());
 
             task.cancel();
         }, 0L, 1L);

@@ -35,6 +35,11 @@ public class StatsListener implements Listener {
         if (stats == null)
             return;
 
+        // Mark player as needing regeneration when they take damage
+        if (finalDamage > 0) {
+            this.plugin.stats().markNeedsRegeneration(player);
+        }
+
         double shield = stats.getStatValue(StatType.SHIELD);
         if (shield <= 0)
             return;

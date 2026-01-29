@@ -39,8 +39,8 @@ public class SkillTriggerListener implements Listener {
     }
 
     @EventHandler
-    public void onSprintToggle(PlayerToggleSneakEvent e) {
-        if (e.isSneaking())
+    public void onSprintToggle(PlayerToggleSprintEvent e) {
+        if (e.isSprinting())
             this.plugin.skills().tryTriggerSkill(e.getPlayer(), InputType.SPRINT, () -> null);
     }
 

@@ -3,17 +3,13 @@ package com.astralrealms.classes.skill;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Input;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -22,12 +18,14 @@ import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.InputSkillContext;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.state.JumpState;
+import com.astralrealms.classes.util.Effects;
+import com.astralrealms.classes.util.StateCache;
 
 @ConfigSerializable
 public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizontalVelocityMultiplier,
                               Duration cooldown) implements Skill, Listener {
 
-    private static final Map<UUID, JumpState> jumpStates = new ConcurrentHashMap<>();
+    private static final StateCache<JumpState> jumpStates = new StateCache<>();
 
     @Override
     public void trigger(Player player, InputType inputType, SkillContext context) {
@@ -37,7 +35,7 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizont
             return;
 
         // Get or create jump state for this player
-        JumpState state = jumpStates.computeIfAbsent(player.getUniqueId(), _ -> new JumpState());
+        JumpState state = jumpStates.getOrCompute(player.getUniqueId(), JumpState::new);
 
         // Player on ground = first jump
         if (isOnGround(player)) {
@@ -49,12 +47,7 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizont
         }
 
         // Spawn particle effect at player's feet location
-        Particle.CLOUD.builder()
-                .count(10)
-                .offset(0.5, 0.2, 0.5)
-                .extra(0)
-                .location(player.getLocation().add(0, 0.1, 0))
-                .spawn();
+        Effects.cloudBurst(player.getLocation());
 
         // Apply velocity
         Vector direction = player.getLocation().getDirection().setY(0).normalize();
@@ -91,7 +84,7 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizont
         state.recordDoubleJump(System.currentTimeMillis());
 
         // Play sound
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BREEZE_JUMP, 0.7f, 1.0f);
+        Effects.playJumpSound(player.getLocation());
     }
 
     @EventHandler
@@ -110,11 +103,6 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizont
         JumpState state = jumpStates.get(uuid);
         if (state != null && state.jumpCount() > 0)
             state.reset();
-    }
-
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        jumpStates.remove(event.getPlayer().getUniqueId());
     }
 
     private boolean isOnGround(Player player) {

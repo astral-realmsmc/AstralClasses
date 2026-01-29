@@ -5,7 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.LivingEntity;
@@ -19,14 +23,14 @@ import org.joml.Vector3f;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import com.astralrealms.classes.AstralClasses;
-import com.astralrealms.classes.ClassAPI;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.Tickable;
 import com.astralrealms.classes.model.skill.AttackSkill;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
-import com.astralrealms.classes.model.stat.StatType;
 import com.astralrealms.classes.model.state.BasicShootState;
+import com.astralrealms.classes.util.Effects;
+import com.astralrealms.classes.util.GameUtils;
 
 @ConfigSerializable
 public record ChargedShootSkill(double damage, Duration cooldown) implements CooldownSkill, AttackSkill, Tickable {
@@ -57,7 +61,7 @@ public record ChargedShootSkill(double damage, Duration cooldown) implements Coo
 
         Vector velocityVec = player.getEyeLocation().getDirection().multiply(0.7 + (0.20 * state.hits()));
 
-        double damage = ClassAPI.getStat(player, inputType, StatType.DAMAGE, this.damage);
+        double damage = GameUtils.computeDamage(player, inputType, this.damage);
 
         // Track start location for distance calculation
         Location startLocation = grenade.getLocation().clone();
@@ -97,20 +101,18 @@ public record ChargedShootSkill(double damage, Duration cooldown) implements Coo
             velocityVec.multiply(0.99);
 
             // 6. Particle Trail
-            Particle.SMOKE.builder()
-                    .location(grenade.getLocation())
-                    .count(2)
-                    .offset(0.2, 0.2, 0.2)
-                    .extra(0)
-                    .spawn();
+            Effects.smokeTrail(grenade.getLocation());
 
             // 7. Entity Interaction (Piercing)
             for (Entity entity : grenade.getWorld().getNearbyEntities(loc, 0.5, 0.5, 0.5)) {
                 if (entity instanceof Player || hitEntities.contains(entity.getUniqueId())) continue;
 
                 if (entity instanceof LivingEntity livingEntity) {
-                    livingEntity.damage(damage, player);
-                    player.getWorld().playSound(entity.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1.0f, 1.0f);
+                    livingEntity.damage(damage, DamageSource.builder(DamageType.MAGIC)
+                            .withDirectEntity(player)
+                            .build());
+
+                    Effects.playHitSound(entity.getLocation());
 
                     entity.setVelocity(entity.getLocation().toVector().subtract(grenade.getLocation().toVector()).normalize().multiply(0.5).setY(0.2));
                     hitEntities.add(entity.getUniqueId());
