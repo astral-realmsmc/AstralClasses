@@ -97,11 +97,8 @@ public class MobListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onHandDamage(EntityDamageByEntityEvent e) {
         // Only handle damage from players
-        if (!(e.getDamager() instanceof Player player))
-            return;
-
-        // Allow magic damage (skills/spells) to pass through
-        if (e.getDamageSource().getDamageType().equals(DamageType.MAGIC))
+        if (!(e.getDamager() instanceof Player player)
+            || e.getDamageSource().getDamageType().equals(DamageType.MAGIC))
             return;
 
         // Apply damage and effects
