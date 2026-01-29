@@ -7,10 +7,7 @@ import com.astralrealms.classes.command.ModifiersCommand;
 import com.astralrealms.classes.command.context.KeyContextResolver;
 import com.astralrealms.classes.configuration.MainConfiguration;
 import com.astralrealms.classes.configuration.StatsConfiguration;
-import com.astralrealms.classes.listener.MobListener;
-import com.astralrealms.classes.listener.PlayerCleanupListener;
-import com.astralrealms.classes.listener.SkillTriggerListener;
-import com.astralrealms.classes.listener.StatsListener;
+import com.astralrealms.classes.listener.*;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.stat.StatModifier;
 import com.astralrealms.classes.model.stat.StatType;
@@ -19,6 +16,7 @@ import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.classes.service.StatService;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
+import com.github.retrooper.packetevents.PacketEvents;
 
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
@@ -60,12 +58,13 @@ public final class AstralClasses extends AstralPaperPlugin {
 
         // Listeners
         PlayerCleanupListener cleanupListener = new PlayerCleanupListener();
-        this.registerListener(cleanupListener);
         this.registerListeners(
                 new SkillTriggerListener(this),
                 new MobListener(this),
-                new StatsListener(this)
+                new StatsListener(this),
+                cleanupListener
         );
+        PacketEvents.getAPI().getEventManager().registerListener(new InputPacketListener(this));
 
         // Register cleanup handlers
         this.skills.cooldownManager().clearOnQuit(cleanupListener);

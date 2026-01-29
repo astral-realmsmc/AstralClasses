@@ -1,14 +1,15 @@
 package com.astralrealms.classes.listener;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.InputType;
-import com.astralrealms.classes.model.skill.context.SkillContext;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,18 +19,13 @@ public class SkillTriggerListener implements Listener {
     private final AstralClasses plugin;
 
     @EventHandler
-    public void onPlayerInput(PlayerInputEvent event) {
-        Player player = event.getPlayer();
-        this.plugin.skills().tryTriggerSkill(player, InputType.SPACE, () -> SkillContext.ofInput(event.getInput()));
-    }
-
-    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
         if (e.getHand() == null
-            || !e.getHand().equals(EquipmentSlot.HAND))
+            || !e.getHand().equals(EquipmentSlot.HAND)
+            || e.getAction().isRightClick())
             return;
 
-        this.plugin.skills().tryTriggerSkill(e.getPlayer(), e.getAction().isLeftClick() ? InputType.LEFT_CLICK : InputType.RIGHT_CLICK, () -> null);
+        this.plugin.skills().tryTriggerSkill(e.getPlayer(), InputType.LEFT_CLICK, () -> null);
     }
 
     @EventHandler
@@ -42,11 +38,6 @@ public class SkillTriggerListener implements Listener {
     public void onSprintToggle(PlayerToggleSprintEvent e) {
         if (e.isSprinting())
             this.plugin.skills().tryTriggerSkill(e.getPlayer(), InputType.SPRINT, () -> null);
-    }
-
-    @EventHandler
-    public void onItemDrop(PlayerDropItemEvent e) {
-        this.plugin.skills().tryTriggerSkill(e.getPlayer(), InputType.DROP, () -> null);
     }
 
     @EventHandler
