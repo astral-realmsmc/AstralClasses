@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.BlockFace;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
@@ -129,7 +130,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             }
 
             // Apply knockback to the player depending on their position relative to the explosion
-            if (player.getLocation().distance(lastLocation.get()) <= impactRange) {
+            if (player.getLocation().distance(lastLocation.get()) <= impactRange * 1.3) {
                 Vector playerKnockback = player.getLocation()
                         .getDirection()
                         .normalize()
