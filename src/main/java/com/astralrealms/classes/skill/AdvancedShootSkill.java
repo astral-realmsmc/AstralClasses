@@ -32,8 +32,8 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
     public void trigger(Player player, InputType inputType, SkillContext context) {
 
         BasicShootState state = BasicShootSkill.getState(player).orElse(null);
-//        if (state == null || state.hits() != 6)
-//            return;
+        if (state == null || state.hits() != 6)
+            return;
 
         Location eyeLocation = GameUtils.getEyeLocation(player);
         eyeLocation.add(player.getLocation().getDirection().multiply(1.0));
