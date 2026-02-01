@@ -1,13 +1,11 @@
 package com.astralrealms.classes.skill;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Particle;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.BlockFace;
 import org.bukkit.damage.DamageSource;
@@ -17,6 +15,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -38,6 +37,15 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
     public void trigger(Player player, InputType inputType, SkillContext context) {
         Item grenade = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection()), Item.class);
         grenade.setItemStack(item);
+        Team grenadeTeam = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("grenades");
+        if (grenadeTeam != null) {
+            grenadeTeam.addEntities(grenade);
+        }else{
+            grenadeTeam = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam("grenades");
+            grenadeTeam.color(NamedTextColor.RED);
+            grenadeTeam.addEntities(grenade);
+        }
+        grenade.setGlowing(true);
 
         // Launch the grenade forward with some upward velocity
         grenade.setVelocity(player.getEyeLocation().getDirection().multiply(velocity));
@@ -45,9 +53,13 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         // Compute damage
         double damage = GameUtils.computeDamage(player, inputType, this.damage);
 
+        Effects.playSound(player.getEyeLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 0.4f, 1.0f);
+        Effects.playSound(player.getEyeLocation(), Sound.ENTITY_TNT_PRIMED, 0.4f, 1.0f);
+
         // When the grenade lands or hits an entity, create an explosion effect
         AtomicReference<Location> lastLocation = new AtomicReference<>(grenade.getLocation());
         long launchTime = System.currentTimeMillis();
+        Team finalGrenadeTeam = grenadeTeam;
         Bukkit.getScheduler().runTaskTimer(AstralClasses.getPlugin(AstralClasses.class), (task) -> {
             Location currentLoc = grenade.getLocation();
 
@@ -88,7 +100,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
             // Continue flying if no collision
             if (!shouldExplode) {
-                ParticleBuilder smokeParticle = Particle.SMOKE.builder()
+                ParticleBuilder smokeParticle = Particle.TRIAL_SPAWNER_DETECTION.builder()
                         .location(currentLoc)
                         .count(5)
                         .offset(0.2, 0.2, 0.2)
@@ -103,6 +115,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             createExplosionEffect(lastLocation.get(), impactRange, hitEntity.get());
 
             // Remove the grenade item
+            finalGrenadeTeam.removeEntities(grenade);
             grenade.remove();
 
             // Damage nearby entities (excluding players)
@@ -139,7 +152,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             }
 
             // Play sound
-            Effects.playExplosionSound(lastLocation.get());
+            Effects.playExplosionSound(player.getLocation());
 
             task.cancel();
         }, 0L, 1L);
@@ -161,6 +174,39 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         final int spheres = 6;
         final long delayPerSphere = 1L;
 
+        ParticleBuilder flameRedOrangeParticle = Particle.DUST_COLOR_TRANSITION.builder()
+                .colorTransition(226,56,34,226,120,34)
+                .offset(0.1, 0.2, 0.1)
+                .count(2)
+                .extra(0f);
+        ParticleBuilder flameRedParticle = Particle.DUST.builder()
+                .color(250,35,13)
+                .offset(0.1, 0.2, 0.1)
+                .count(2)
+                .extra(0f);
+        ParticleBuilder flameParticle = Particle.SMALL_FLAME.builder()
+                .offset(0.1, 0.2, 0.1)
+                .count(2)
+                .extra(0f);
+        ParticleBuilder dripParticle = Particle.CRIMSON_SPORE.builder()
+                .offset(0.2, 0.3, 0.2)
+                .count(1)
+                .extra(0f);
+
+        List<ParticleBuilder> particles = new ArrayList<>(List.of(flameRedOrangeParticle, flameParticle, flameRedParticle, dripParticle));
+
+        ParticleBuilder gust = Particle.ITEM.builder()
+                .data(new ItemStack(Material.MAGMA_BLOCK, 1))
+                .offset(0.1, 0.4, 0.1)
+                .count(2)
+                .extra(0.3);
+        ParticleBuilder lava = Particle.LAVA.builder()
+                .offset(0.1, 0.1, 0.1)
+                .count(2)
+                .extra(0.05);
+
+        List<ParticleBuilder> centerParticles = new ArrayList<>(List.of(lava, gust));
+
         for (int sphere = 0; sphere < spheres; sphere++) {
             final int currentSphere = sphere;
             final double radius = (maxRadius / spheres) * (sphere + 1);
@@ -178,23 +224,11 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
                     Location particleLoc = new Location(center.getWorld(), x, y, z);
 
-                    // Alternate between purple and white
-                    if (currentSphere % 2 == 0) {
-                        Particle.DUST.builder()
-                                .location(particleLoc)
-                                .count(2)
-                                .offset(0, 0, 0)
-                                .extra(0)
-                                .color(Color.RED)
-                                .spawn();
-                    } else {
-                        Particle.CLOUD.builder()
-                                .location(particleLoc)
-                                .count(1)
-                                .offset(0, 0, 0)
-                                .extra(0)
-                                .spawn();
-                    }
+                    // Alternate between particle types
+                    Collections.shuffle(particles);
+                    particles.getFirst()
+                            .location(particleLoc)
+                            .spawn();
                 }
 
                 // Add some sparks radiating outward
@@ -210,11 +244,9 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
                     Location sparkLoc = center.clone().add(direction.multiply(radius));
 
-                    Particle.END_ROD.builder()
+                    Collections.shuffle(centerParticles);
+                    centerParticles.getFirst()
                             .location(sparkLoc)
-                            .count(1)
-                            .offset(0, 0, 0)
-                            .extra(0)
                             .spawn();
                 }
 
@@ -224,9 +256,42 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
     private static void createGroundExplosion(Location center, double maxRadius) {
         // Number of particles and expansion duration
-        final int particlesPerRing = 30;
+        final int particlesPerRing = 15;
         final int rings = 8;
-        final long delayPerRing = 1L;
+        final long delayPerRing = 0L;
+
+        ParticleBuilder flameRedOrangeParticle = Particle.DUST_COLOR_TRANSITION.builder()
+                .colorTransition(226,56,34,226,120,34)
+                .offset(0.1, 0.2, 0.1)
+                .count(2)
+                .extra(0f);
+        ParticleBuilder flameRedParticle = Particle.DUST.builder()
+                .color(250,35,13)
+                .offset(0.1, 0.2, 0.1)
+                .count(2)
+                .extra(0f);
+        ParticleBuilder flameParticle = Particle.SMALL_FLAME.builder()
+                .offset(0.1, 0.2, 0.1)
+                .count(2)
+                .extra(0f);
+        ParticleBuilder dripParticle = Particle.CRIMSON_SPORE.builder()
+                .offset(0.2, 0.3, 0.2)
+                .count(1)
+                .extra(0f);
+
+        List<ParticleBuilder> particles = new ArrayList<>(List.of(flameRedOrangeParticle, flameParticle, flameRedParticle, dripParticle));
+
+        ParticleBuilder gust = Particle.ITEM.builder()
+                .data(new ItemStack(Material.MAGMA_BLOCK, 1))
+                .offset(0.1, 0.4, 0.1)
+                .count(2)
+                .extra(0.3);
+        ParticleBuilder lava = Particle.LAVA.builder()
+                .offset(0.1, 0.1, 0.1)
+                .count(2)
+                .extra(0.05);
+
+        List<ParticleBuilder> centerParticles = new ArrayList<>(List.of(lava, gust));
 
         for (int ring = 0; ring < rings; ring++) {
             final int currentRing = ring;
@@ -242,29 +307,16 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
                     Location particleLoc = new Location(center.getWorld(), x, y, z);
 
-                    // Alternate between purple and white
-                    if (currentRing % 2 == 0) {
-                        // Purple particles - red
-                        Particle.DUST.builder()
-                                .location(particleLoc)
-                                .count(4)
-                                .offset(0, 0, 0)
-                                .extra(0)
-                                .color(Color.RED)
-                                .spawn();
-                    } else {
-                        // White particles - use CLOUD for white effect
-                        Particle.CLOUD.builder()
-                                .location(particleLoc)
-                                .count(1)
-                                .offset(0, 0, 0)
-                                .extra(0)
-                                .spawn();
-                    }
+                    // Alternate between particle types
+                    Collections.shuffle(particles);
+                    particles.getFirst()
+                            .location(particleLoc)
+                            .spawn();
+
                 }
 
                 // Add some rising particles in the center for depth
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 4; i++) {
                     double offset = Math.random() * radius * 0.3;
                     Location upwardLoc = center.clone().add(
                             (Math.random() - 0.5) * offset,
@@ -272,11 +324,9 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
                             (Math.random() - 0.5) * offset
                     );
 
-                    Particle.END_ROD.builder()
+                    Collections.shuffle(centerParticles);
+                    centerParticles.getFirst()
                             .location(upwardLoc)
-                            .count(1)
-                            .offset(0, 0.2, 0)
-                            .extra(0.05)
                             .spawn();
                 }
 

@@ -1,5 +1,6 @@
 package com.astralrealms.classes.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -44,18 +45,45 @@ public final class GameUtils {
      * @param hitRadius   The radius around the ray to detect entities
      * @return Collection of hit entities
      */
-    public static Collection<LivingEntity> raytraceEntities(Location start, Vector direction, double maxDistance,
-            double hitRadius) {
-        if (start.getWorld() == null) {
-            return List.of();
+    public static Collection<LivingEntity> raytraceEntities(Location start, Vector direction, double maxDistance, double hitRadius, double stepSize, Location lastHitLocation) {
+        if (!start.isWorldLoaded() || !start.isChunkLoaded() || start.getWorld() == null) {
+            return null;
+        }
+
+        List<LivingEntity> entities = new ArrayList<>();
+
+        double squaredMaxDistance = maxDistance * maxDistance;
+        Location currentLocation = start.clone();
+        Vector directionNormalized = direction.clone().normalize();
+        int steps = 0;
+
+        do {
+            Collection<LivingEntity> nearbyEntities = currentLocation.getNearbyLivingEntities(hitRadius);
+            nearbyEntities.forEach(entity -> {
+                if (!entities.contains(entity) && !(entity instanceof Player) && entity.hasLineOfSight(start)) {
+                    entities.add(entity);
+                }
+            });
+            currentLocation.add(directionNormalized.clone().multiply(stepSize*steps++));
+        } while (start.distanceSquared(currentLocation) <= squaredMaxDistance || steps < 1000);
+
+        lastHitLocation.set(currentLocation.x(), currentLocation.y(), currentLocation.z());
+
+        return entities;
+    }
+
+    public static LivingEntity raytraceEntity(Location start, Vector direction, double maxDistance, double hitRadius) {
+        if (!start.isWorldLoaded() || !start.isChunkLoaded() || start.getWorld() == null) {
+            return null;
         }
 
         RayTraceResult rayTraceResult = start.getWorld().rayTraceEntities(start, direction, maxDistance, hitRadius,
                 entity -> entity instanceof LivingEntity && !(entity instanceof Player));
         if (rayTraceResult != null && rayTraceResult.getHitEntity() != null) {
-            return List.of((LivingEntity) rayTraceResult.getHitEntity());
+            return (LivingEntity) rayTraceResult.getHitEntity();
         }
-        return List.of();
+
+        return null;
     }
 
     /**

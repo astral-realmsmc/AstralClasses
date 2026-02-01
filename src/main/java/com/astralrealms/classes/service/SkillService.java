@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import com.astralrealms.classes.skill.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -24,10 +25,6 @@ import com.astralrealms.classes.model.Tickable;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
-import com.astralrealms.classes.skill.BasicShootSkill;
-import com.astralrealms.classes.skill.ChargedShootSkill;
-import com.astralrealms.classes.skill.DoubleJumpSkill;
-import com.astralrealms.classes.skill.GrenadeSkill;
 import com.astralrealms.core.paper.configuration.serializer.PaperTypeSerializers;
 import com.astralrealms.core.registry.NamedRegistry;
 
@@ -44,7 +41,7 @@ public class SkillService {
 
         this.skillsTypes.register("double-jump", DoubleJumpSkill.class);
         this.skillsTypes.register("basic-projectile", BasicShootSkill.class);
-        this.skillsTypes.register("charged-projectile", ChargedShootSkill.class);
+        this.skillsTypes.register("advanced-projectile", AdvancedShootSkill.class);
         this.skillsTypes.register("grenade", GrenadeSkill.class);
 
         // Start ticking task

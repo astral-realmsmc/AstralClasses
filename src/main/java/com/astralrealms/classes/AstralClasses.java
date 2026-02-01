@@ -24,6 +24,9 @@ import net.kyori.adventure.key.Key;
 @Getter
 public final class AstralClasses extends AstralPaperPlugin {
 
+    @Getter
+    private static AstralClasses instance;
+
     // Configuration
     private MainConfiguration configuration;
     private StatsConfiguration statsConfiguration;
@@ -36,6 +39,8 @@ public final class AstralClasses extends AstralPaperPlugin {
     @Override
     public void onEnable() {
         super.onEnable();
+
+        instance = this;
 
         // Services (StatService must be initialized before SkillService)
         this.stats = new StatService(this);
