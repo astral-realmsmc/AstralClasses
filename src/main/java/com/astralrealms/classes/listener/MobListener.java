@@ -23,8 +23,8 @@ import org.joml.Vector3f;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.InputType;
-import com.astralrealms.classes.util.Constants;
-import com.astralrealms.classes.util.GameUtils;
+import com.astralrealms.classes.utils.Constants;
+import com.astralrealms.classes.utils.GameUtils;
 import com.astralrealms.core.model.wrapper.ComponentWrapper;
 
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;

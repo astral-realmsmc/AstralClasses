@@ -1,4 +1,4 @@
-package com.astralrealms.classes.util;
+package com.astralrealms.classes.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,9 +10,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-import com.astralrealms.classes.ClassAPI;
 import com.astralrealms.classes.model.InputType;
-import com.astralrealms.classes.model.stat.StatType;
+import com.astralrealms.stats.StatsAPI;
+import com.astralrealms.stats.model.stat.StatType;
 
 import lombok.experimental.UtilityClass;
 
@@ -26,13 +26,14 @@ public final class GameUtils {
     /**
      * Compute damage for a player with stat modifiers applied.
      *
-     * @param player    The player dealing damage
-     * @param inputType The input type (LEFT_CLICK, RIGHT_CLICK, etc.)
+     * @param player     The player dealing damage
+     * @param inputType  The input type (LEFT_CLICK, RIGHT_CLICK, etc.)
      * @param baseDamage The base damage value
      * @return The computed damage with all modifiers applied
      */
     public static double computeDamage(Player player, InputType inputType, double baseDamage) {
-        return ClassAPI.getStat(player, inputType, StatType.DAMAGE, baseDamage);
+        // TODO: Implement input-type filtering
+        return StatsAPI.stat(player, StatType.ATTACK_DAMAGE, baseDamage);
     }
 
     /**
@@ -64,7 +65,7 @@ public final class GameUtils {
                     entities.add(entity);
                 }
             });
-            currentLocation.add(directionNormalized.clone().multiply(stepSize*steps++));
+            currentLocation.add(directionNormalized.clone().multiply(stepSize * steps++));
         } while (start.distanceSquared(currentLocation) <= squaredMaxDistance || steps < 1000);
 
         lastHitLocation.set(currentLocation.x(), currentLocation.y(), currentLocation.z());

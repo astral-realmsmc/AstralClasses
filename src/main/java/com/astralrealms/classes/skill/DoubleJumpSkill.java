@@ -17,8 +17,8 @@ import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.InputSkillContext;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.state.JumpState;
-import com.astralrealms.classes.util.Effects;
-import com.astralrealms.classes.util.StateCache;
+import com.astralrealms.classes.utils.Effects;
+import com.astralrealms.classes.utils.StateCache;
 
 @ConfigSerializable
 public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizontalVelocityMultiplier,

@@ -21,9 +21,9 @@ import com.astralrealms.classes.model.skill.AttackSkill;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.state.BasicShootState;
-import com.astralrealms.classes.util.Effects;
-import com.astralrealms.classes.util.GameUtils;
-import com.astralrealms.classes.util.StateCache;
+import com.astralrealms.classes.utils.Effects;
+import com.astralrealms.classes.utils.GameUtils;
+import com.astralrealms.classes.utils.StateCache;
 import com.astralrealms.core.paper.utils.ComponentUtils;
 
 import net.kyori.adventure.text.Component;

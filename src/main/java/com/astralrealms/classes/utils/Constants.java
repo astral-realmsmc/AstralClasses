@@ -1,4 +1,4 @@
-package com.astralrealms.classes.util;
+package com.astralrealms.classes.utils;
 
 import lombok.experimental.UtilityClass;
 

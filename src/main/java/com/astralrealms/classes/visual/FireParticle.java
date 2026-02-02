@@ -1,15 +1,16 @@
 package com.astralrealms.classes.visual;
 
-import com.astralrealms.classes.AstralClasses;
-import com.astralrealms.classes.util.GameUtils;
-import com.destroystokyo.paper.ParticleBuilder;
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.ThreadLocalRandom;
+import com.astralrealms.classes.AstralClasses;
+import com.astralrealms.classes.utils.GameUtils;
+import com.destroystokyo.paper.ParticleBuilder;
 
 public class FireParticle {
 

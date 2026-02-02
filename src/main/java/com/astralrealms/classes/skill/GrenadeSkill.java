@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.BlockFace;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
@@ -24,8 +23,8 @@ import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.skill.AttackSkill;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
-import com.astralrealms.classes.util.Effects;
-import com.astralrealms.classes.util.GameUtils;
+import com.astralrealms.classes.utils.Effects;
+import com.astralrealms.classes.utils.GameUtils;
 import com.destroystokyo.paper.ParticleBuilder;
 
 @ConfigSerializable

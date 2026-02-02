@@ -9,7 +9,8 @@ import org.bukkit.entity.Player;
 import com.astralrealms.classes.listener.PlayerCleanupListener;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.Skill;
-import com.astralrealms.classes.model.stat.StatType;
+import com.astralrealms.stats.StatsAPI;
+import com.astralrealms.stats.model.stat.StatType;
 
 /**
  * Manages skill cooldowns with attack speed modification.
@@ -18,11 +19,6 @@ import com.astralrealms.classes.model.stat.StatType;
 public class CooldownManager {
 
     private final Map<UUID, Map<Class<? extends Skill>, Long>> timestamps = new HashMap<>();
-    private final StatService statService;
-
-    public CooldownManager(StatService statService) {
-        this.statService = statService;
-    }
 
     /**
      * Check if a player can use a cooldown skill.
@@ -38,9 +34,7 @@ public class CooldownManager {
 
         // Get the modified cooldown based on ATTACK_SPEED
         long baseCooldownMillis = skill.cooldown().toMillis();
-        double attackSpeed = this.statService.getPlayerStats(player)
-                .map(stats -> stats.computedStats().getOrDefault(StatType.ATTACK_SPEED, 1.0))
-                .orElse(1.0);
+        double attackSpeed = StatsAPI.stat(player, StatType.ATTACK_SPEED);
         long modifiedCooldownMillis = (long) (baseCooldownMillis / attackSpeed);
 
         return currentTime - lastUsed >= modifiedCooldownMillis;
@@ -76,9 +70,7 @@ public class CooldownManager {
 
         // Get the modified cooldown based on ATTACK_SPEED
         long baseCooldownMillis = skill.cooldown().toMillis();
-        double attackSpeed = this.statService.getPlayerStats(player)
-                .map(stats -> stats.computedStats().getOrDefault(StatType.ATTACK_SPEED, 1.0))
-                .orElse(1.0);
+        double attackSpeed = StatsAPI.stat(player, StatType.ATTACK_SPEED);
         long modifiedCooldownMillis = (long) (baseCooldownMillis / attackSpeed);
 
         long elapsed = currentTime - lastUsed;
