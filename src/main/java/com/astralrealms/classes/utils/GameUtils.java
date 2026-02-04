@@ -32,8 +32,7 @@ public final class GameUtils {
      * @return The computed damage with all modifiers applied
      */
     public static double computeDamage(Player player, InputType inputType, double baseDamage) {
-        // TODO: Implement input-type filtering
-        return StatsAPI.stat(player, StatType.ATTACK_DAMAGE, baseDamage);
+        return StatsAPI.stat(player, StatType.ATTACK_DAMAGE, baseDamage, inputType);
     }
 
     /**
@@ -47,9 +46,8 @@ public final class GameUtils {
      * @return Collection of hit entities
      */
     public static Collection<LivingEntity> raytraceEntities(Location start, Vector direction, double maxDistance, double hitRadius, double stepSize, Location lastHitLocation) {
-        if (!start.isWorldLoaded() || !start.isChunkLoaded() || start.getWorld() == null) {
+        if (!start.isWorldLoaded() || !start.isChunkLoaded() || start.getWorld() == null)
             return null;
-        }
 
         List<LivingEntity> entities = new ArrayList<>();
 

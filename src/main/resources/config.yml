@@ -1,5 +1,1 @@
 default-class: "mage"
-
-damage-indicator:
-  immune: "<yellow>Immune</yellow>"
-  damaged: "<red>-{amount}</red>"
