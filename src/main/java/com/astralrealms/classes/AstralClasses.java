@@ -3,6 +3,7 @@ package com.astralrealms.classes;
 import java.util.Arrays;
 
 import com.astralrealms.classes.command.ClassCommand;
+import com.astralrealms.classes.command.ModifierCommand;
 import com.astralrealms.classes.command.context.KeyContextResolver;
 import com.astralrealms.classes.configuration.MainConfiguration;
 import com.astralrealms.classes.listener.*;
@@ -48,6 +49,7 @@ public final class AstralClasses extends AstralPaperPlugin {
         this.registerContext(Key.class, new KeyContextResolver());
         // -- Command
         this.registerCommand(new ClassCommand());
+        this.registerCommand(new ModifierCommand());
 
         // Listeners
         PlayerCleanupListener cleanupListener = new PlayerCleanupListener();
