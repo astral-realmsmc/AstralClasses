@@ -9,6 +9,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.InputType;
+import com.astralrealms.classes.model.skill.AttackSkill;
 import com.astralrealms.classes.utils.GameUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,12 @@ public class MobListener implements Listener {
                 .findByPlayer(player)
                 .findSkillByInput(InputType.LEFT_CLICK)
                 .ifPresentOrElse(skill -> {
-                    double damage = GameUtils.computeDamage(player, InputType.LEFT_CLICK, skill.damage());
+                    if (!(skill instanceof AttackSkill attackSkill)) {
+                        e.setCancelled(true);
+                        return;
+                    }
+
+                    double damage = GameUtils.computeDamage(player, InputType.LEFT_CLICK, attackSkill.damage());
                     e.setDamage(damage);
                 }, () -> e.setCancelled(true));
     }

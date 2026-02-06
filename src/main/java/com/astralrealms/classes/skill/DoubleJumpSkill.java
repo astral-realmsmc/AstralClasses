@@ -86,11 +86,6 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizont
         Effects.playJumpSound(player.getLocation());
     }
 
-    @Override
-    public double damage() {
-        return 0;
-    }
-
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         // Early exit: only process when moving between blocks

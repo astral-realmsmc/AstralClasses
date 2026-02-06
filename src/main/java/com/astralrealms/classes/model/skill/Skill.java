@@ -15,6 +15,4 @@ public interface Skill {
      * @param context The context in which the skill is being triggered, can be null.
      */
     void trigger(Player player, InputType inputType, @Nullable SkillContext context);
-
-    double damage();
 }
