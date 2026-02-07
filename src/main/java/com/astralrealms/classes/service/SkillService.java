@@ -24,10 +24,7 @@ import com.astralrealms.classes.model.Tickable;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
-import com.astralrealms.classes.skill.AdvancedShootSkill;
-import com.astralrealms.classes.skill.BasicShootSkill;
-import com.astralrealms.classes.skill.DoubleJumpSkill;
-import com.astralrealms.classes.skill.GrenadeSkill;
+import com.astralrealms.classes.skill.*;
 import com.astralrealms.core.paper.configuration.serializer.PaperTypeSerializers;
 import com.astralrealms.core.registry.NamedRegistry;
 
@@ -46,6 +43,7 @@ public class SkillService {
         this.skillsTypes.register("basic-projectile", BasicShootSkill.class);
         this.skillsTypes.register("advanced-projectile", AdvancedShootSkill.class);
         this.skillsTypes.register("grenade", GrenadeSkill.class);
+        this.skillsTypes.register("stat-modifier", StatModifierSkill.class);
 
         // Start ticking task
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
@@ -109,7 +107,7 @@ public class SkillService {
                 .ifPresent(skill -> {
                     // Handle cooldowns
                     if (skill instanceof CooldownSkill cooldownSkill) {
-                        if (!cooldownManager.canUse(player, cooldownSkill))
+                        if (!cooldownManager.canUse(player, cooldownSkill, type))
                             return;
                         cooldownManager.recordUsage(player, skill);
                     }

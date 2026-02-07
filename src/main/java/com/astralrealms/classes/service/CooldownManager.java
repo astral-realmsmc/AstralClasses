@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 
 import com.astralrealms.classes.listener.PlayerCleanupListener;
+import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.Skill;
 import com.astralrealms.stats.StatsAPI;
@@ -27,14 +28,14 @@ public class CooldownManager {
      * @param skill  The cooldown skill to check
      * @return true if the skill can be used (not on cooldown)
      */
-    public boolean canUse(Player player, CooldownSkill skill) {
+    public boolean canUse(Player player, CooldownSkill skill, InputType inputType) {
         long currentTime = System.currentTimeMillis();
         Map<Class<? extends Skill>, Long> playerTimestamps = this.timestamps.computeIfAbsent(player.getUniqueId(), _ -> new HashMap<>());
         long lastUsed = playerTimestamps.getOrDefault(skill.getClass(), 0L);
 
         // Get the modified cooldown based on ATTACK_SPEED
         long baseCooldownMillis = skill.cooldown().toMillis();
-        double attackSpeed = StatsAPI.stat(player, StatType.ATTACK_SPEED);
+        double attackSpeed = StatsAPI.stat(player, StatType.ATTACK_SPEED.key(), inputType);
         long modifiedCooldownMillis = (long) (baseCooldownMillis / attackSpeed);
 
         return currentTime - lastUsed >= modifiedCooldownMillis;
