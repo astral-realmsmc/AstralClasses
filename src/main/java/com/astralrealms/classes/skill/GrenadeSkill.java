@@ -1,10 +1,11 @@
 package com.astralrealms.classes.skill;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.damage.DamageSource;
@@ -27,6 +28,8 @@ import com.astralrealms.classes.utils.Effects;
 import com.astralrealms.classes.utils.GameUtils;
 import com.destroystokyo.paper.ParticleBuilder;
 
+import net.kyori.adventure.text.format.NamedTextColor;
+
 @ConfigSerializable
 public record GrenadeSkill(ItemStack item, double velocity, double impactRange, double damage,
                            Vector playerKnockbackVelocity, double entityKnockbackVelocity,
@@ -39,7 +42,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         Team grenadeTeam = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("grenades");
         if (grenadeTeam != null) {
             grenadeTeam.addEntities(grenade);
-        }else{
+        } else {
             grenadeTeam = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam("grenades");
             grenadeTeam.color(NamedTextColor.RED);
             grenadeTeam.addEntities(grenade);
@@ -55,46 +58,90 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         Effects.playSound(player.getEyeLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 0.4f, 1.0f);
         Effects.playSound(player.getEyeLocation(), Sound.ENTITY_TNT_PRIMED, 0.4f, 1.0f);
 
-        // When the grenade lands or hits an entity, create an explosion effect
-        AtomicReference<Location> lastLocation = new AtomicReference<>(grenade.getLocation());
+// When the grenade lands or hits an entity, create an explosion effect
+        AtomicReference<Location> lastLocation = new AtomicReference<>(grenade.getLocation().clone());
         long launchTime = System.currentTimeMillis();
         Team finalGrenadeTeam = grenadeTeam;
+
         Bukkit.getScheduler().runTaskTimer(AstralClasses.getPlugin(AstralClasses.class), (task) -> {
             Location currentLoc = grenade.getLocation();
+            Location prevLoc = lastLocation.get();
 
             // Check if grenade should continue flying
-            // null = hasn't exploded yet, true = entity hit, false = ground/timeout hit
             AtomicReference<Boolean> hitEntity = new AtomicReference<>(null);
             boolean shouldExplode = false;
+            Location explosionLoc = currentLoc.clone();
 
-            // Check if grenade hit the ground (block at grenade location is solid, or very close to ground)
-            if (currentLoc.getBlock().getType().isSolid()) {
-                shouldExplode = true;
-                hitEntity.set(false);
-            } else if (currentLoc.getY() <= currentLoc.getBlockY() + 0.2 &&
-                       currentLoc.getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
-                // Grenade is touching or very close to the ground
+            // === IMPROVED COLLISION DETECTION ===
+
+            // 1. Check timeout first (3 seconds)
+            if (System.currentTimeMillis() - launchTime >= 3000) {
                 shouldExplode = true;
                 hitEntity.set(false);
             }
 
-            // Check if grenade hit an entity (within 0.5 blocks)
+            // 2. Raycast between previous and current position to prevent pass-through
             if (!shouldExplode) {
-                var nearbyEntities = grenade.getWorld()
-                        .getNearbyEntities(currentLoc, 0.5, 0.5, 0.5);
-                for (Entity entity : nearbyEntities) {
-                    if (entity != grenade && entity != player) {
-                        shouldExplode = true;
-                        hitEntity.set(true);
-                        break;
+                Vector direction = currentLoc.toVector().subtract(prevLoc.toVector());
+                double distance = direction.length();
+
+                if (distance > 0.1) { // Only raycast if grenade moved significantly
+                    direction.normalize();
+
+                    // Check each 0.1 block step along the path
+                    for (double d = 0; d <= distance; d += 0.1) {
+                        Location checkLoc = prevLoc.clone().add(direction.clone().multiply(d));
+
+                        // Check for solid blocks
+                        if (checkLoc.getBlock().getType().isSolid()) {
+                            shouldExplode = true;
+                            hitEntity.set(false);
+                            explosionLoc = checkLoc;
+                            break;
+                        }
+
+                        // Check for entities with larger radius
+                        var nearbyEntities = grenade.getWorld()
+                                .getNearbyEntities(checkLoc, 0.8, 0.8, 0.8);
+                        for (Entity entity : nearbyEntities) {
+                            if (entity != grenade && entity != player && entity instanceof LivingEntity) {
+                                shouldExplode = true;
+                                hitEntity.set(true);
+                                explosionLoc = checkLoc;
+                                break;
+                            }
+                        }
+
+                        if (shouldExplode) break;
                     }
                 }
             }
 
-            // Check timeout (3 seconds)
-            if (!shouldExplode && System.currentTimeMillis() - launchTime >= 3000) {
-                shouldExplode = true;
-                hitEntity.set(false);
+            // 3. Final position checks (ground proximity)
+            if (!shouldExplode) {
+                // Check if grenade is at current position on solid block
+                if (currentLoc.getBlock().getType().isSolid()) {
+                    shouldExplode = true;
+                    hitEntity.set(false);
+                }
+                // Check if very close to ground
+                else if (currentLoc.getY() <= currentLoc.getBlockY() + 0.2 &&
+                         currentLoc.getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
+                    shouldExplode = true;
+                    hitEntity.set(false);
+                }
+                // Final entity check at current position
+                else {
+                    var nearbyEntities = grenade.getWorld()
+                            .getNearbyEntities(currentLoc, 0.8, 0.8, 0.8);
+                    for (Entity entity : nearbyEntities) {
+                        if (entity != grenade && entity != player && entity instanceof LivingEntity) {
+                            shouldExplode = true;
+                            hitEntity.set(true);
+                            break;
+                        }
+                    }
+                }
             }
 
             // Continue flying if no collision
@@ -110,8 +157,10 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
                 return;
             }
 
+            // === EXPLOSION ===
+
             // Create expanding purple and white explosion effect
-            createExplosionEffect(lastLocation.get(), impactRange, hitEntity.get());
+            createExplosionEffect(explosionLoc, impactRange, hitEntity.get());
 
             // Remove the grenade item
             finalGrenadeTeam.removeEntities(grenade);
@@ -119,30 +168,31 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
 
             // Damage nearby entities (excluding players)
             List<Entity> nearbyEntities = grenade.getWorld()
-                    .getNearbyEntities(grenade.getLocation(), impactRange, impactRange, impactRange)
+                    .getNearbyEntities(explosionLoc, impactRange, impactRange, impactRange)
                     .stream()
+                    .filter(e -> e instanceof LivingEntity && !(e instanceof Player))
                     .toList();
+
             for (Entity entity : nearbyEntities) {
-                if (entity instanceof LivingEntity livingEntity && !(entity instanceof Player))
-                    livingEntity.damage(damage, DamageSource.builder(DamageType.MAGIC)
-                            .withDirectEntity(player)
-                            .build());
+                LivingEntity livingEntity = (LivingEntity) entity;
+                livingEntity.damage(damage, DamageSource.builder(DamageType.MAGIC)
+                        .withDirectEntity(player)
+                        .build());
             }
 
             // Apply knockback to nearby entities
             for (Entity entity : nearbyEntities) {
-                if (entity instanceof LivingEntity livingEntity && !(entity instanceof Player)) {
-                    Vector knockbackDirection = livingEntity.getLocation().toVector()
-                            .subtract(grenade.getLocation().toVector())
-                            .setY(0)
-                            .normalize();
-                    Vector knockback = knockbackDirection.multiply(entityKnockbackVelocity);
-                    livingEntity.setVelocity(livingEntity.getVelocity().add(knockback));
-                }
+                LivingEntity livingEntity = (LivingEntity) entity;
+                Vector knockbackDirection = livingEntity.getLocation().toVector()
+                        .subtract(explosionLoc.toVector())
+                        .setY(0)
+                        .normalize();
+                Vector knockback = knockbackDirection.multiply(entityKnockbackVelocity);
+                livingEntity.setVelocity(livingEntity.getVelocity().add(knockback));
             }
 
             // Apply knockback to the player depending on their position relative to the explosion
-            if (player.getLocation().distance(lastLocation.get()) <= impactRange * 1.3) {
+            if (player.getLocation().distance(explosionLoc) <= impactRange * 1.3) {
                 Vector playerKnockback = player.getLocation()
                         .getDirection()
                         .normalize()
@@ -151,7 +201,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             }
 
             // Play sound
-            Effects.playExplosionSound(player.getLocation());
+            Effects.playExplosionSound(explosionLoc);
 
             task.cancel();
         }, 0L, 1L);
@@ -174,12 +224,12 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         final long delayPerSphere = 1L;
 
         ParticleBuilder flameRedOrangeParticle = Particle.DUST_COLOR_TRANSITION.builder()
-                .colorTransition(226,56,34,226,120,34)
+                .colorTransition(226, 56, 34, 226, 120, 34)
                 .offset(0.1, 0.2, 0.1)
                 .count(2)
                 .extra(0f);
         ParticleBuilder flameRedParticle = Particle.DUST.builder()
-                .color(250,35,13)
+                .color(250, 35, 13)
                 .offset(0.1, 0.2, 0.1)
                 .count(2)
                 .extra(0f);
@@ -260,12 +310,12 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         final long delayPerRing = 0L;
 
         ParticleBuilder flameRedOrangeParticle = Particle.DUST_COLOR_TRANSITION.builder()
-                .colorTransition(226,56,34,226,120,34)
+                .colorTransition(226, 56, 34, 226, 120, 34)
                 .offset(0.1, 0.2, 0.1)
                 .count(2)
                 .extra(0f);
         ParticleBuilder flameRedParticle = Particle.DUST.builder()
-                .color(250,35,13)
+                .color(250, 35, 13)
                 .offset(0.1, 0.2, 0.1)
                 .count(2)
                 .extra(0f);

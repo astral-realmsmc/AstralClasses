@@ -47,7 +47,7 @@ public final class GameUtils {
      * @param hitRadius   The radius around the ray to detect entities
      * @return Collection of hit entities
      */
-    public static Collection<LivingEntity> raytraceEntities(Location start, Vector direction, double maxDistance, double hitRadius, double stepSize, Location lastHitLocation) {
+    public static List<LivingEntity> raytraceEntities(Location start, Vector direction, double maxDistance, double hitRadius, double stepSize, Location lastHitLocation) {
         if (!start.isWorldLoaded() || !start.isChunkLoaded() || start.getWorld() == null)
             return null;
 
@@ -67,9 +67,7 @@ public final class GameUtils {
             });
             currentLocation.add(directionNormalized.clone().multiply(stepSize * steps++));
         } while (start.distanceSquared(currentLocation) <= squaredMaxDistance || steps < 1000);
-
         lastHitLocation.set(currentLocation.x(), currentLocation.y(), currentLocation.z());
-
         return entities;
     }
 
