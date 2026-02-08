@@ -34,7 +34,6 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
 
     @Override
     public void trigger(Player player, InputType inputType, SkillContext context) {
-
         BasicShootState state = BasicShootSkill.getState(player).orElse(null);
         if (state == null || state.hits() == 0)
             return;
@@ -60,7 +59,7 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
 
             // Apply damage and effects
             double damage = GameUtils.computeDamage(player, inputType, this.damage);
-            damage *= Math.max(chargeDamage * consumedHits, maxChargeDamage);
+            damage += Math.max(chargeDamage * consumedHits, maxChargeDamage);
             applyDamageAndEffects(player, targets.hitEntities, damage);
 
             // Consume hits
