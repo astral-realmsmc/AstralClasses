@@ -25,16 +25,18 @@ import com.astralrealms.classes.visual.FireParticle;
 
 @ConfigSerializable
 public record AdvancedShootSkill(int range, double damage, double helixRadius, double hitOffset,
-                                 Duration cooldown) implements AttackSkill, CooldownSkill, Tickable {
+                                 Duration cooldown, double chargeDamage,
+                                 int maxChargeDamage) implements AttackSkill, CooldownSkill, Tickable {
 
     @Override
-    public void tick() { }
+    public void tick() {
+    }
 
     @Override
     public void trigger(Player player, InputType inputType, SkillContext context) {
 
         BasicShootState state = BasicShootSkill.getState(player).orElse(null);
-        if (state == null || state.hits() != 6)
+        if (state == null || state.hits() == 0)
             return;
 
         Location eyeLocation = GameUtils.getEyeLocation(player);
@@ -49,14 +51,21 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
         TargetResult targets = findTargets(eyeLocation, direction);
 
         // Spawn helix effect
-        FireParticle.spawnFireHelixEffect(eyeLocation.clone().add(0,0.3,0).add(direction.clone().multiply(0.5)), direction, perpendicular, helixRadius, targets != null ? targets.hitDistance : range);
+        FireParticle.spawnFireHelixEffect(eyeLocation.clone().add(0, 0.3, 0).add(direction.clone().multiply(0.5)), direction, perpendicular, helixRadius, targets != null ? targets.hitDistance : range);
 
-        if(targets != null && !targets.hitEntities.isEmpty()){
+        if (targets != null && !targets.hitEntities.isEmpty()) {
+            // Determine hits to consume
+            int hits = state.hits();
+            int consumedHits = Math.min(hits, 4);
+
             // Apply damage and effects
             double damage = GameUtils.computeDamage(player, inputType, this.damage);
+            damage *= Math.max(chargeDamage * consumedHits, maxChargeDamage);
             applyDamageAndEffects(player, targets.hitEntities, damage);
-        }
 
+            // Consume hits
+            state.updateHits(h -> h - consumedHits);
+        }
     }
 
     private Vector getPerpendicularVector(Vector direction) {
@@ -73,7 +82,7 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
         Collection<LivingEntity> potentialHits = GameUtils.raytraceEntities(eyeLocation, direction, range,
                 2.0 * helixRadius, 0.3, lastHitLocation);
 
-        if(potentialHits.isEmpty()){
+        if (potentialHits.isEmpty()) {
             return null;
         }
 

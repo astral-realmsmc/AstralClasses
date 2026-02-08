@@ -1,5 +1,7 @@
 package com.astralrealms.classes.model.state;
 
+import java.util.function.IntUnaryOperator;
+
 import com.astralrealms.classes.model.Tickable;
 
 import lombok.Getter;
@@ -21,6 +23,10 @@ public class BasicShootState implements Tickable {
 
         if (hits < 6)
             hits++;
+    }
+
+    public void updateHits(IntUnaryOperator hitUpdater) {
+        this.hits = Math.max(0, hitUpdater.applyAsInt(this.hits));
     }
 
     public void resetHits() {
