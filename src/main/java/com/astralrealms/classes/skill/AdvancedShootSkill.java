@@ -52,19 +52,19 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
         // Spawn helix effect
         FireParticle.spawnFireHelixEffect(eyeLocation.clone().add(0, 0.3, 0).add(direction.clone().multiply(0.5)), direction, perpendicular, helixRadius, targets != null ? targets.hitDistance : range);
 
-        if (targets != null && !targets.hitEntities.isEmpty()) {
-            // Determine hits to consume
-            int hits = state.hits();
-            int consumedHits = Math.min(hits, 4);
+        if (targets == null || targets.hitEntities.isEmpty())
+            return;
 
-            // Apply damage and effects
-            double damage = GameUtils.computeDamage(player, inputType, this.damage);
-            damage += Math.max(chargeDamage * consumedHits, maxChargeDamage);
-            applyDamageAndEffects(player, targets.hitEntities, damage);
+        // Determine hits to consume
+        int hits = state.hits();
+        int consumedHits = Math.min(hits, 4);
 
-            // Consume hits
-            state.updateHits(h -> h - consumedHits);
-        }
+        // Apply damage and effects
+        double damage = Math.min(GameUtils.computeDamage(player, inputType, this.damage) + (chargeDamage * consumedHits), maxChargeDamage);
+        applyDamageAndEffects(player, targets.hitEntities, damage);
+
+        // Consume hits
+        state.updateHits(h -> h - consumedHits);
     }
 
     private Vector getPerpendicularVector(Vector direction) {

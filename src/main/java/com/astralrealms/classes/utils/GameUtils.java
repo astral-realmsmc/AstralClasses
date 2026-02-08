@@ -32,9 +32,7 @@ public final class GameUtils {
      * @return The computed damage with all modifiers applied
      */
     public static double computeDamage(Player player, InputType inputType, double baseDamage) {
-        double damage = StatsAPI.stat(player, StatType.ATTACK_DAMAGE, baseDamage, inputType);
-        IO.println("Computed damages: " + damage + " (Base: " + baseDamage + ", Player: " + player.getName() + ",); Input: " + inputType + ")");
-        return damage;
+        return StatsAPI.stat(player, StatType.ATTACK_DAMAGE, baseDamage, inputType);
     }
 
     /**
