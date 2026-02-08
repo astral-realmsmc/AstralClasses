@@ -79,14 +79,11 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
 
     private TargetResult findTargets(Location eyeLocation, Vector direction) {
         Location lastHitLocation = eyeLocation.clone();
-        Collection<LivingEntity> potentialHits = GameUtils.raytraceEntities(eyeLocation, direction, range,
+        List<LivingEntity> potentialHits = GameUtils.raytraceEntities(eyeLocation, direction, range,
                 2.0 * helixRadius, 0.3, lastHitLocation);
-
-        if (potentialHits.isEmpty()) {
+        if (potentialHits == null || potentialHits.isEmpty())
             return null;
-        }
-
-        return new TargetResult(potentialHits.stream().toList(), eyeLocation.distance(lastHitLocation));
+        return new TargetResult(potentialHits, eyeLocation.distance(lastHitLocation));
     }
 
     private void applyDamageAndEffects(Player player, Collection<LivingEntity> targets, double damage) {
@@ -98,7 +95,7 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
                     .withDirectEntity(player)
                     .build());
 
-            target.setFireTicks(100);
+            target.setFireTicks(5);
 
             Effects.playHitSound(target.getLocation());
         }
