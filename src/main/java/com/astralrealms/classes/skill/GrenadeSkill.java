@@ -58,7 +58,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         Effects.playSound(player.getEyeLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 0.4f, 1.0f);
         Effects.playSound(player.getEyeLocation(), Sound.ENTITY_TNT_PRIMED, 0.4f, 1.0f);
 
-// When the grenade lands or hits an entity, create an explosion effect
+        // When the grenade lands or hits an entity, create an explosion effect
         AtomicReference<Location> lastLocation = new AtomicReference<>(grenade.getLocation().clone());
         long launchTime = System.currentTimeMillis();
         Team finalGrenadeTeam = grenadeTeam;
@@ -85,7 +85,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
                 Vector direction = currentLoc.toVector().subtract(prevLoc.toVector());
                 double distance = direction.length();
 
-                if (distance > 0.1) { // Only raycast if grenade moved significantly
+                if (distance > 0.05) { // Only raycast if grenade moved significantly
                     direction.normalize();
 
                     // Check each 0.1 block step along the path

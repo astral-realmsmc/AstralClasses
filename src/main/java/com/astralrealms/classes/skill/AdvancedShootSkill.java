@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.damage.DamageSource;
@@ -13,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
+import com.astralrealms.classes.AstralClasses;
 import com.astralrealms.classes.model.InputType;
 import com.astralrealms.classes.model.Tickable;
 import com.astralrealms.classes.model.skill.AttackSkill;
@@ -50,7 +52,7 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
         TargetResult targets = findTargets(eyeLocation, direction);
 
         // Spawn helix effect
-        FireParticle.spawnFireHelixEffect(eyeLocation.clone().add(0, 0.3, 0).add(direction.clone().multiply(0.5)), direction, perpendicular, helixRadius, targets != null ? targets.hitDistance : range);
+        Bukkit.getScheduler().runTaskAsynchronously(AstralClasses.instance(), () -> FireParticle.spawnFireHelixEffect(eyeLocation.clone().add(0, 0.3, 0).add(direction.clone().multiply(0.5)), direction, perpendicular, helixRadius, targets != null ? targets.hitDistance : range));
 
         if (targets == null || targets.hitEntities.isEmpty())
             return;
