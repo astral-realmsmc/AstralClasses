@@ -7,4 +7,5 @@ depend:
   - AstralCore
   - packetevents
   - AstralStats
+  - PlaceholderAPI
   #- AstralSync

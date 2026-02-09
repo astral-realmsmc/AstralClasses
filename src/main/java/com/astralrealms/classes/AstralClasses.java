@@ -8,6 +8,7 @@ import com.astralrealms.classes.command.context.KeyContextResolver;
 import com.astralrealms.classes.configuration.MainConfiguration;
 import com.astralrealms.classes.listener.*;
 import com.astralrealms.classes.model.InputType;
+import com.astralrealms.classes.placeholders.ClassExpansion;
 import com.astralrealms.classes.service.ClassService;
 import com.astralrealms.classes.service.SkillService;
 import com.astralrealms.core.paper.plugin.AstralPaperPlugin;
@@ -65,6 +66,9 @@ public final class AstralClasses extends AstralPaperPlugin {
 
         // Sync
         // AstralSyncAPI.registerAdapter(new ClassSnapshotAdapter(this));
+
+        // Placeholders
+        new ClassExpansion(this).register();
 
         // API
         ClassAPI.init(this);
