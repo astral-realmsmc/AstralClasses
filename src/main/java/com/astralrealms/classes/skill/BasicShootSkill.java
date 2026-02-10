@@ -3,11 +3,9 @@ package com.astralrealms.classes.skill;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
-import com.astralrealms.classes.visual.FireParticle;
-import com.astralrealms.classes.visual.GeneralParticle;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.LivingEntity;
@@ -24,19 +22,16 @@ import com.astralrealms.classes.model.state.BasicShootState;
 import com.astralrealms.classes.utils.Effects;
 import com.astralrealms.classes.utils.GameUtils;
 import com.astralrealms.classes.utils.StateCache;
-import com.astralrealms.core.paper.utils.ComponentUtils;
+import com.astralrealms.classes.visual.FireParticle;
+import com.astralrealms.classes.visual.GeneralParticle;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.sound.Sound;
 
 @ConfigSerializable
 public record BasicShootSkill(int range, double damage, double knockbackVelocity, double helixRadius, double hitOffset,
-                              Duration cooldown) implements AttackSkill, CooldownSkill, Tickable {
+                              Duration cooldown, Sound sound, Sound hitSound) implements AttackSkill, CooldownSkill, Tickable {
 
     private static final StateCache<BasicShootState> states = new StateCache<>();
-    private static final Component COMPLETED_BAR = Component.text("■", NamedTextColor.GREEN);
-    private static final Component EMPTY_BAR = Component.text("□", NamedTextColor.GRAY);
-    private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
 
     @Override
     public void tick() {
@@ -54,9 +49,6 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
 
             // Tick the state
             state.tick();
-
-            // Update action bar
-            player.sendActionBar(ComponentUtils.progressBar((double) state.hits() / 6, 6, COMPLETED_BAR, EMPTY_BAR));
         }
     }
 
@@ -82,8 +74,9 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
 
             // Update hit markers
             states.edit(player.getUniqueId(), BasicShootState::new, BasicShootState::recordHit);
-
         }
+
+        // player.playSound(sound);
     }
 
     private TargetResult findTarget(Location eyeLocation, Vector direction) {
@@ -105,7 +98,7 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
                 .withDirectEntity(player)
                 .build());
 
-        Effects.playHitSound(target.getLocation());
+        player.playSound(hitSound);
 
         // Play hit particle effect
         GeneralParticle.spawnHitParticleEffect(target.getLocation());

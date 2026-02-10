@@ -28,7 +28,7 @@ import com.astralrealms.classes.visual.FireParticle;
 @ConfigSerializable
 public record AdvancedShootSkill(int range, double damage, double helixRadius, double hitOffset,
                                  Duration cooldown, double chargeDamage,
-                                 int maxChargeDamage) implements AttackSkill, CooldownSkill, Tickable {
+                                 int maxChargeDamage, net.kyori.adventure.sound.Sound sound) implements AttackSkill, CooldownSkill, Tickable {
 
     @Override
     public void tick() {
@@ -47,6 +47,9 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
 
         Vector direction = eyeLocation.getDirection();
         Vector perpendicular = getPerpendicularVector(direction);
+
+        // Play sound
+        player.playSound(sound);
 
         // Find targets
         TargetResult targets = findTargets(eyeLocation, direction);

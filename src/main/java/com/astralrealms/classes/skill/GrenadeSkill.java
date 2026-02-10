@@ -33,7 +33,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 @ConfigSerializable
 public record GrenadeSkill(ItemStack item, double velocity, double impactRange, double damage,
                            Vector playerKnockbackVelocity, double entityKnockbackVelocity,
-                           Duration cooldown) implements AttackSkill, CooldownSkill {
+                           Duration cooldown, net.kyori.adventure.sound.Sound sound) implements AttackSkill, CooldownSkill {
 
     @Override
     public void trigger(Player player, InputType inputType, SkillContext context) {
@@ -201,7 +201,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             }
 
             // Play sound
-            Effects.playExplosionSound(explosionLoc);
+            player.playSound(sound);
 
             task.cancel();
         }, 0L, 1L);

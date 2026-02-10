@@ -27,10 +27,11 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 
 @ConfigSerializable
 public record StatModifierSkill(Duration cooldown, Duration duration, Key key, Key stat, ModifierType modifier,
-                                InputType input, double value) implements CooldownSkill, Tickable {
+                                InputType input, double value, Sound sound) implements CooldownSkill, Tickable {
 
     private static final StateCache<StatModifierState> states = new StateCache<>();
 
@@ -53,6 +54,8 @@ public record StatModifierSkill(Duration cooldown, Duration duration, Key key, K
 
             // Remove from cache
             states.remove(entry.getKey());
+
+            player.playSound(sound);
 
             // Send metadata update
             WrapperPlayServerEntityMetadata metadataPacket = new WrapperPlayServerEntityMetadata(
