@@ -19,7 +19,6 @@ import com.astralrealms.classes.model.skill.AttackSkill;
 import com.astralrealms.classes.model.skill.CooldownSkill;
 import com.astralrealms.classes.model.skill.context.SkillContext;
 import com.astralrealms.classes.model.state.BasicShootState;
-import com.astralrealms.classes.utils.Effects;
 import com.astralrealms.classes.utils.GameUtils;
 import com.astralrealms.classes.utils.StateCache;
 import com.astralrealms.classes.visual.FireParticle;
@@ -57,7 +56,7 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
         Location eyeLocation = GameUtils.getEyeLocation(player);
         eyeLocation.add(player.getLocation().getDirection().multiply(1.0));
 
-        Effects.playCastSound(eyeLocation);
+        player.playSound(sound);
 
         Vector direction = eyeLocation.getDirection();
 
@@ -67,27 +66,21 @@ public record BasicShootSkill(int range, double damage, double knockbackVelocity
         // Spawn helix effect
         FireParticle.spawnFireTrail(eyeLocation, direction, target != null ? target.hitDistance : range);
 
-        if(target != null && target.hitEntity != null){
-            // Apply damage and effects
-            double damage = GameUtils.computeDamage(player, inputType, this.damage);
-            applyDamageAndEffects(player, target.hitEntity, damage);
+        if (target == null || target.hitEntity == null)
+            return;
 
-            // Update hit markers
-            states.edit(player.getUniqueId(), BasicShootState::new, BasicShootState::recordHit);
-        }
+        // Apply damage and effects
+        double damage = GameUtils.computeDamage(player, inputType, this.damage);
+        applyDamageAndEffects(player, target.hitEntity, damage);
 
-        // player.playSound(sound);
+        // Update hit markers
+        states.edit(player.getUniqueId(), BasicShootState::new, BasicShootState::recordHit);
     }
 
     private TargetResult findTarget(Location eyeLocation, Vector direction) {
-
-        LivingEntity potentialHit = GameUtils.raytraceEntity(eyeLocation, direction, range,
-                2.0 * helixRadius + hitOffset);
-
-        if(potentialHit == null){
+        LivingEntity potentialHit = GameUtils.raytraceEntity(eyeLocation, direction, range, 2.0 * helixRadius + hitOffset);
+        if(potentialHit == null)
             return null;
-        }
-
         return new TargetResult(potentialHit, eyeLocation.distance(potentialHit.getLocation()));
     }
 

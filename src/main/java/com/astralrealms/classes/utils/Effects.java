@@ -119,15 +119,6 @@ public final class Effects {
     }
 
     /**
-     * Play the spell casting sound.
-     *
-     * @param location The location to play at
-     */
-    public static void playCastSound(Location location) {
-        playSound(location, Sound.ENTITY_EVOKER_CAST_SPELL, 0.4f, 1.0f);
-    }
-
-    /**
      * Play the jump sound.
      *
      * @param location The location to play at
