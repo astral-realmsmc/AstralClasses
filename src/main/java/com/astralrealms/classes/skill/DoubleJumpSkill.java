@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -105,7 +106,8 @@ public record DoubleJumpSkill(Vector verticalVelocityMultiplier, Vector horizont
     }
 
     private boolean isOnGround(Player player) {
-        Block block = player.getLocation().getBlock().getRelative(0, -1, 0);
-        return block.getType().isSolid();
+        BoundingBox boundingBox = player.getBoundingBox();
+        Block blockBelow = player.getWorld().getBlockAt((int) boundingBox.getMinX(), (int) (boundingBox.getMinY() - 1), (int) boundingBox.getMinZ());
+        return blockBelow.isCollidable();
     }
 }

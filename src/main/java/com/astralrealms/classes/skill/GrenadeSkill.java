@@ -215,6 +215,9 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             // Ring-based explosion for ground hits
             createGroundExplosion(center, maxRadius);
         }
+
+        // Play explosion sound
+        Effects.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 2f, 1.0f);
     }
 
     private static void createSphericalExplosion(Location center, double maxRadius) {
