@@ -33,7 +33,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 @ConfigSerializable
 public record GrenadeSkill(ItemStack item, double velocity, double impactRange, double damage,
                            Vector playerKnockbackVelocity, double entityKnockbackVelocity,
-                           Duration cooldown, net.kyori.adventure.sound.Sound sound) implements AttackSkill, CooldownSkill {
+                           Duration cooldown,
+                           net.kyori.adventure.sound.Sound sound) implements AttackSkill, CooldownSkill {
 
     @Override
     public void trigger(Player player, InputType inputType, SkillContext context) {
@@ -160,7 +161,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
             // === EXPLOSION ===
 
             // Create expanding purple and white explosion effect
-            createExplosionEffect(explosionLoc, impactRange, hitEntity.get());
+            createExplosionEffect(player, explosionLoc, impactRange, hitEntity.get());
 
             // Remove the grenade item
             finalGrenadeTeam.removeEntities(grenade);
@@ -207,7 +208,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         }, 0L, 1L);
     }
 
-    private static void createExplosionEffect(Location center, double maxRadius, Boolean hitEntity) {
+    private static void createExplosionEffect(Player player, Location center, double maxRadius, Boolean hitEntity) {
         if (hitEntity != null && hitEntity) {
             // Spherical explosion for entity hits (mid-air explosion)
             createSphericalExplosion(center, maxRadius);
@@ -217,7 +218,19 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
         }
 
         // Play explosion sound
-        Effects.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 2f, 1.0f);
+        float soundVolume = hitEntity != null && hitEntity ? 1.0f : 0.6f;
+        float pitch = hitEntity != null && hitEntity ? 1.2f : 0.8f;
+
+        double distance = player.getLocation().distance(center);
+        if (distance > maxRadius * 2) {
+            soundVolume *= 0.5f; // Distant explosion sounds quieter
+        } else if (distance > maxRadius) {
+            soundVolume *= 0.8f; // Mid-range explosion slightly quieter
+        }
+        soundVolume = Math.max(0.1f, soundVolume * (1 - (float) (distance / (maxRadius * 2)))); // Linear falloff
+
+        player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, soundVolume, pitch);
+
     }
 
     private static void createSphericalExplosion(Location center, double maxRadius) {
