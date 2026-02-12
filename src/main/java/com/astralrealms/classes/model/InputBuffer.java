@@ -21,17 +21,26 @@ public class InputBuffer {
      * Updates the buffer and returns true only on rising edge (false -> true).
      *
      * @param player The player to check
-     * @param input The input type to check
+     * @param input  The input type to check
      * @param packet The current input packet (for SPACE input)
      * @return true if the input changed from false to true, false otherwise
      */
     public boolean onInputReceived(Player player, InputType input, WrapperPlayClientPlayerInput packet) {
-        if (input != InputType.SPACE) {
+        if (input != InputType.SPACE && input != InputType.SNEAK) {
             return true; // Non-space inputs always trigger
         }
 
         UUID uuid = player.getUniqueId();
-        BufferedInput currentState = playerStates.computeIfAbsent(uuid, k -> new BufferedInput());
+        BufferedInput currentState = playerStates.computeIfAbsent(uuid, _ -> new BufferedInput());
+
+        if (input == InputType.SNEAK) {
+            boolean newSneakState = packet.isShift();
+            boolean previousSneakState = currentState.sneak;
+            // Update the state
+            currentState.sneak = newSneakState;
+            // Only trigger on rising edge (false -> true)
+            return !previousSneakState && newSneakState;
+        }
 
         boolean newJumpState = packet.isJump();
         boolean previousJumpState = currentState.jump;
@@ -55,5 +64,6 @@ public class InputBuffer {
      */
     private static class BufferedInput {
         boolean jump;
+        boolean sneak;
     }
 }

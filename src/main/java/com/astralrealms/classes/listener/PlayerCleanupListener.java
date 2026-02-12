@@ -33,6 +33,7 @@ public class PlayerCleanupListener implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
+
         // Call all registered cleanup handlers
         for (Consumer<UUID> handler : cleanupHandlers) {
             try {

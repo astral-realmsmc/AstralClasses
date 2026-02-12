@@ -13,9 +13,7 @@ import com.github.retrooper.packetevents.event.simple.PacketPlayReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerInput;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
+import com.github.retrooper.packetevents.wrapper.play.client.*;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,10 +42,20 @@ public class InputPacketListener extends SimplePacketListenerAbstract {
         } else if (event.getPacketType().equals(PacketType.Play.Client.PLAYER_INPUT)) {
             WrapperPlayClientPlayerInput packet = new WrapperPlayClientPlayerInput(event);
 
-            // Only trigger if the jump state changed from false to true
-            if (this.inputBuffer.onInputReceived(player, InputType.SPACE, packet)) {
-                this.plugin.skills().tryTriggerSkill(player, InputType.SPACE, () -> SkillContext.ofInput(new SimpleInput(packet)));
-            }
+            SkillContext context = SkillContext.ofInput(new SimpleInput(packet));
+            if (this.inputBuffer.onInputReceived(player, InputType.SPACE, packet))
+                this.plugin.skills().tryTriggerSkill(player, InputType.SPACE, () -> context);
+
+            if (this.inputBuffer.onInputReceived(player, InputType.SNEAK, packet))
+                this.plugin.skills().tryTriggerSkill(player, InputType.SNEAK, () -> context);
+        } else if (event.getPacketType().equals(PacketType.Play.Client.INTERACT_ENTITY)) {
+            WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
+            this.plugin.skills().tryTriggerSkill(player, packet.getAction().equals(WrapperPlayClientInteractEntity.InteractAction.ATTACK) ? InputType.LEFT_CLICK : InputType.RIGHT_CLICK, () -> null);
+            event.setCancelled(true);
+        } else if (event.getPacketType().equals(PacketType.Play.Client.ANIMATION)) {
+            WrapperPlayClientAnimation packet = new WrapperPlayClientAnimation(event);
+            if (packet.getHand().equals(InteractionHand.MAIN_HAND))
+                this.plugin.skills().tryTriggerSkill(player, InputType.LEFT_CLICK, () -> null);
         }
     }
 
