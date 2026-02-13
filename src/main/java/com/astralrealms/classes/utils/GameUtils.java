@@ -59,7 +59,7 @@ public final class GameUtils {
         do {
             Collection<LivingEntity> nearbyEntities = currentLocation.getNearbyLivingEntities(hitRadius);
             nearbyEntities.forEach(entity -> {
-                if (!entities.contains(entity) && !(entity instanceof Player) && entity.hasLineOfSight(start)) {
+                if (!entities.contains(entity) && !(entity instanceof Player) && entity.hasLineOfSight(start) && !entity.isInvisible()) {
                     entities.add(entity);
                 }
             });
@@ -75,7 +75,7 @@ public final class GameUtils {
         }
 
         RayTraceResult rayTraceResult = start.getWorld().rayTraceEntities(start, direction, maxDistance, hitRadius,
-                entity -> entity instanceof LivingEntity && !(entity instanceof Player));
+                entity -> entity instanceof LivingEntity && !(entity instanceof Player) && !entity.isInvisible());
         if (rayTraceResult != null && rayTraceResult.getHitEntity() != null) {
             return (LivingEntity) rayTraceResult.getHitEntity();
         }

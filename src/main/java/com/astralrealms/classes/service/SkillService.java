@@ -34,10 +34,12 @@ public class SkillService {
     private final NamedRegistry<Class<? extends Skill>> skillsTypes = new NamedRegistry<>();
     private final Map<String, Skill> skills = new HashMap<>();
     private final CooldownManager cooldownManager;
+    final SkillTriggerManager triggerManager;
 
     public SkillService(AstralClasses plugin) {
         this.plugin = plugin;
         this.cooldownManager = new CooldownManager();
+        this.triggerManager = new SkillTriggerManager(plugin, 1);
 
         this.skillsTypes.register("double-jump", DoubleJumpSkill.class);
         this.skillsTypes.register("basic-projectile", BasicShootSkill.class);
@@ -57,6 +59,9 @@ public class SkillService {
     public void load() {
         this.plugin.getSLF4JLogger().info("Loading skills...");
         this.skills.clear();
+
+        // Start trigger manager tick counter
+        this.triggerManager.startTickCounter();
 
         TypeSerializerCollection serializers = TypeSerializerCollection.builder()
                 .register(Vector.class, new VectorTypeSerializer())
@@ -105,12 +110,19 @@ public class SkillService {
     public void tryTriggerSkill(Player player, AstralClass astralClass, InputType type, Supplier<@Nullable SkillContext> contextSupplier) {
         astralClass.findSkillByInput(type)
                 .ifPresent(skill -> {
+                    // Check if player can trigger a skill this tick (before cooldowns)
+                    if (!triggerManager.canTrigger(player))
+                        return;
+
                     // Handle cooldowns
                     if (skill instanceof CooldownSkill cooldownSkill) {
                         if (!cooldownManager.canUse(player, cooldownSkill, type))
                             return;
                         cooldownManager.recordUsage(player, skill);
                     }
+
+                    // Record the trigger after all checks pass
+                    triggerManager.recordTrigger(player);
 
                     Runnable run = () -> skill.trigger(player, type, contextSupplier.get());
 
@@ -127,5 +139,9 @@ public class SkillService {
 
     public CooldownManager cooldownManager() {
         return cooldownManager;
+    }
+
+    public SkillTriggerManager triggerManager() {
+        return triggerManager;
     }
 }

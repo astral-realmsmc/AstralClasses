@@ -34,11 +34,15 @@ public class InputPacketListener extends SimplePacketListenerAbstract {
             this.plugin.skills().tryTriggerSkill(player, InputType.RIGHT_CLICK, () -> null);
         } else if (event.getPacketType().equals(PacketType.Play.Client.PLAYER_DIGGING)) {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
-            if (!packet.getAction().equals(DiggingAction.DROP_ITEM)
-                && !packet.getAction().equals(DiggingAction.DROP_ITEM_STACK))
-                return;
+            DiggingAction action = packet.getAction();
 
-            this.plugin.skills().tryTriggerSkill(player, InputType.DROP, () -> null);
+            if (action.equals(DiggingAction.DROP_ITEM) || action.equals(DiggingAction.DROP_ITEM_STACK)) {
+                this.plugin.skills().tryTriggerSkill(player, InputType.DROP, () -> null);
+                // Record trigger to prevent ANIMATION from also triggering in same tick
+                this.plugin.skills().triggerManager().recordTrigger(player);
+            } else if (action.equals(DiggingAction.START_DIGGING)) {
+                this.plugin.skills().tryTriggerSkill(player, InputType.LEFT_CLICK, () -> null);
+            }
         } else if (event.getPacketType().equals(PacketType.Play.Client.PLAYER_INPUT)) {
             WrapperPlayClientPlayerInput packet = new WrapperPlayClientPlayerInput(event);
 
@@ -58,10 +62,6 @@ public class InputPacketListener extends SimplePacketListenerAbstract {
         } else if (event.getPacketType().equals(PacketType.Play.Client.ANIMATION)) {
             WrapperPlayClientAnimation packet = new WrapperPlayClientAnimation(event);
             if (packet.getHand().equals(InteractionHand.MAIN_HAND))
-                this.plugin.skills().tryTriggerSkill(player, InputType.LEFT_CLICK, () -> null);
-        } else if (event.getPacketType().equals(PacketType.Play.Client.PLAYER_DIGGING)) {
-            WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
-            if (packet.getAction().equals(DiggingAction.START_DIGGING))
                 this.plugin.skills().tryTriggerSkill(player, InputType.LEFT_CLICK, () -> null);
         }
     }

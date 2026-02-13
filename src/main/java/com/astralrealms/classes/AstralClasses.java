@@ -56,13 +56,13 @@ public final class AstralClasses extends AstralPaperPlugin {
         PlayerCleanupListener cleanupListener = new PlayerCleanupListener();
         this.registerListeners(
                 new SkillTriggerListener(this),
-                new MobListener(this),
                 cleanupListener
         );
         PacketEvents.getAPI().getEventManager().registerListener(new InputPacketListener(this));
 
         // Register cleanup handlers
         this.skills.cooldownManager().clearOnQuit(cleanupListener);
+        this.skills.triggerManager().clearOnQuit(cleanupListener);
 
         // Sync
         // AstralSyncAPI.registerAdapter(new ClassSnapshotAdapter(this));
