@@ -50,11 +50,18 @@ public class InputPacketListener extends SimplePacketListenerAbstract {
                 this.plugin.skills().tryTriggerSkill(player, InputType.SNEAK, () -> context);
         } else if (event.getPacketType().equals(PacketType.Play.Client.INTERACT_ENTITY)) {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
+            if (!packet.getHand().equals(InteractionHand.MAIN_HAND))
+                return;
+
             this.plugin.skills().tryTriggerSkill(player, packet.getAction().equals(WrapperPlayClientInteractEntity.InteractAction.ATTACK) ? InputType.LEFT_CLICK : InputType.RIGHT_CLICK, () -> null);
             event.setCancelled(true);
         } else if (event.getPacketType().equals(PacketType.Play.Client.ANIMATION)) {
             WrapperPlayClientAnimation packet = new WrapperPlayClientAnimation(event);
             if (packet.getHand().equals(InteractionHand.MAIN_HAND))
+                this.plugin.skills().tryTriggerSkill(player, InputType.LEFT_CLICK, () -> null);
+        } else if (event.getPacketType().equals(PacketType.Play.Client.PLAYER_DIGGING)) {
+            WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
+            if (packet.getAction().equals(DiggingAction.START_DIGGING))
                 this.plugin.skills().tryTriggerSkill(player, InputType.LEFT_CLICK, () -> null);
         }
     }
