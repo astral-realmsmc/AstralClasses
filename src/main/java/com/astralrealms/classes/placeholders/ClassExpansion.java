@@ -43,7 +43,7 @@ public class ClassExpansion extends PlaceholderExpansion {
                 if (args.length > 2) {
                     String type = args[2];
                     yield switch (type) {
-                        case "max" -> String.valueOf(cooldownSkill.cooldown().getSeconds());
+                        case "max" -> String.valueOf(round(cooldownSkill.cooldown().getSeconds()));
                         case null, default -> null;
                     };
                 }
@@ -52,7 +52,7 @@ public class ClassExpansion extends PlaceholderExpansion {
                         .cooldownManager()
                         .getRemainingCooldown(player, cooldownSkill);
 
-                yield String.valueOf(Math.toIntExact(remaining / 1000));
+                yield String.valueOf(round(remaining / 1000d));
             }
             default -> null;
         };
@@ -71,5 +71,9 @@ public class ClassExpansion extends PlaceholderExpansion {
     @Override
     public @NotNull String getVersion() {
         return plugin.getPluginMeta().getVersion();
+    }
+
+    private int round(double value) {
+        return (int) Math.ceil(value);
     }
 }
