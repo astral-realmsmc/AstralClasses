@@ -2,6 +2,7 @@ package com.astralrealms.classes.skill;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -102,18 +103,13 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
                         }
 
                         // Check for entities with larger radius
-                        var nearbyEntities = grenade.getWorld()
-                                .getNearbyEntities(checkLoc, 0.8, 0.8, 0.8);
-                        for (Entity entity : nearbyEntities) {
-                            if (entity != grenade && entity != player && entity instanceof LivingEntity) {
-                                shouldExplode = true;
-                                hitEntity.set(true);
-                                explosionLoc = checkLoc;
-                                break;
-                            }
+                        Collection<Entity> nearbyEntities = grenade.getWorld().getNearbyEntities(checkLoc, 0.8, 0.8, 0.8, e -> e instanceof LivingEntity && e != grenade && e != player && !e.isInvisible());
+                        if (!nearbyEntities.isEmpty()) {
+                            shouldExplode = true;
+                            hitEntity.set(true);
+                            explosionLoc = checkLoc;
+                            break;
                         }
-
-                        if (shouldExplode) break;
                     }
                 }
             }
@@ -172,6 +168,7 @@ public record GrenadeSkill(ItemStack item, double velocity, double impactRange, 
                     .getNearbyEntities(explosionLoc, impactRange, impactRange, impactRange)
                     .stream()
                     .filter(e -> e instanceof LivingEntity && !(e instanceof Player))
+                    .filter(e -> !e.isInvisible())
                     .toList();
 
             for (Entity entity : nearbyEntities) {

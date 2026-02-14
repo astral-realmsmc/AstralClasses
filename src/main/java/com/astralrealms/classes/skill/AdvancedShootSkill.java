@@ -57,19 +57,19 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
         // Spawn helix effect
         Bukkit.getScheduler().runTaskAsynchronously(AstralClasses.instance(), () -> FireParticle.spawnFireHelixEffect(eyeLocation.clone().add(0, 0.3, 0).add(direction.clone().multiply(0.5)), direction, perpendicular, helixRadius, targets != null ? targets.hitDistance : range));
 
-        if (targets == null || targets.hitEntities.isEmpty())
-            return;
-
         // Determine hits to consume
         int hits = state.hits();
         int consumedHits = Math.min(hits, 4);
 
+        // Consume hits
+        state.updateHits(h -> h - consumedHits);
+
+        if (targets == null || targets.hitEntities.isEmpty())
+            return;
+
         // Apply damage and effects
         double damage = Math.min(GameUtils.computeDamage(player, inputType, this.damage) + (chargeDamage * consumedHits), maxChargeDamage);
         applyDamageAndEffects(player, targets.hitEntities, damage);
-
-        // Consume hits
-        state.updateHits(h -> h - consumedHits);
     }
 
     private Vector getPerpendicularVector(Vector direction) {
@@ -99,7 +99,7 @@ public record AdvancedShootSkill(int range, double damage, double helixRadius, d
                     .withDirectEntity(player)
                     .build());
 
-            target.setFireTicks(5);
+            target.setFireTicks(10);
 
             Effects.playHitSound(target.getLocation());
         }
